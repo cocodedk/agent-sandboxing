@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>为什么要把 AI 编程智能体放进沙箱</title>
+<meta name="description" content="AI 编程智能体以你的权限行事，沙箱限制它能触及的范围。了解其中的风险、好处、局限以及如何上手。">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sandbox.cocode.dk/zh/">
+<link rel="alternate" hreflang="en" href="https://sandbox.cocode.dk/">
+<link rel="alternate" hreflang="da" href="https://sandbox.cocode.dk/da/">
+<link rel="alternate" hreflang="es" href="https://sandbox.cocode.dk/es/">
+<link rel="alternate" hreflang="zh-Hans" href="https://sandbox.cocode.dk/zh/">
+<link rel="alternate" hreflang="x-default" href="https://sandbox.cocode.dk/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="agent-sandboxing">
+<meta property="og:title" content="为什么要把 AI 编程智能体放进沙箱">
+<meta property="og:description" content="AI 编程智能体以你的权限行事，沙箱限制它能触及的范围。了解其中的风险、好处、局限以及如何上手。">
+<meta property="og:url" content="https://sandbox.cocode.dk/zh/">
+<meta property="og:image" content="https://sandbox.cocode.dk/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="为什么要把 AI 编程智能体放进沙箱: 智能体以你的权限行事，沙箱限制它能触及的范围。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="da_DK">
+<meta property="og:locale:alternate" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="为什么要把 AI 编程智能体放进沙箱">
+<meta name="twitter:description" content="AI 编程智能体以你的权限行事，沙箱限制它能触及的范围。了解其中的风险、好处、局限以及如何上手。">
+<meta name="twitter:image" content="https://sandbox.cocode.dk/og.png">
+<meta name="twitter:image:alt" content="为什么要把 AI 编程智能体放进沙箱: 智能体以你的权限行事，沙箱限制它能触及的范围。">
+
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
+<script type="module" src="../webmcp.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://sandbox.cocode.dk/zh/#page",
+      "url": "https://sandbox.cocode.dk/zh/",
+      "name": "为什么要把 AI 编程智能体放进沙箱",
+      "description": "AI 编程智能体以你的权限行事，沙箱限制它能触及的范围。了解其中的风险、好处、局限以及如何上手。",
+      "inLanguage": "zh-Hans",
+      "isPartOf": { "@type": "WebSite", "name": "agent-sandboxing", "url": "https://sandbox.cocode.dk/" },
+      "about": { "@id": "https://github.com/cocodedk/agent-sandboxing" },
+      "publisher": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" }
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://github.com/cocodedk/agent-sandboxing",
+      "name": "agent-sandboxing",
+      "description": "AI 编程智能体以你的权限行事，沙箱限制它能触及的范围。了解其中的风险、好处、局限以及如何上手。",
+      "codeRepository": "https://github.com/cocodedk/agent-sandboxing",
+      "url": "https://sandbox.cocode.dk/",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "author": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" }
+    }
+  ]
+}
+</script>
+</head>
+<body data-ui-copy="复制" data-ui-copied="已复制">
+<a class="skip" href="#content">跳到正文</a>
+
+<!-- The brand header builds its language links from the hreflang tags above; these show only without JavaScript. -->
+<cocode-head project="agent-sandboxing" accent="#2f6b5c" on-accent="#ffffff" dark="auto">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="../" hreflang="en" lang="en">English</a>
+  <a href="../da/" hreflang="da" lang="da">Dansk</a>
+  <a href="../es/" hreflang="es" lang="es">Español</a>
+  <span class="on" lang="zh-Hans">简体中文</span>
+</cocode-head>
+
+<main id="content" class="wrap" tabindex="-1">
+  <article class="article">
+    <header class="article-head">
+      <h1>为什么要把 AI 编程智能体放进沙箱</h1>
+      <p class="lead">AI 编程智能体是一种让语言模型在你的电脑上执行操作的程序，例如 Claude Code、opencode、pi 和 prime-agent。智能体会读取和编辑文件、运行命令和测试、安装软件包、抓取网页，而这一切都使用你的用户账户权限：凡是你能做的，它都能做。</p>
+      <p>沙箱是为智能体隔出来的一块空间。智能体像普通程序一样运行，但只能看到你电脑的一部分：项目文件夹、它需要的程序，以及它必须访问的少数几个互联网主机。</p>
+      <p class="source"><a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">GitHub 上的源码</a></p>
+    </header>
+
+    <nav class="toc" aria-labelledby="toc-title">
+      <p class="toc-title" id="toc-title">本页内容</p>
+      <ol>
+        <li><a href="#what-can-go-wrong-without-a-sandbox">没有沙箱时可能出什么问题</a></li>
+        <li><a href="#what-a-sandbox-does">沙箱做了什么</a></li>
+        <li><a href="#what-you-gain">你能得到什么</a></li>
+        <li><a href="#what-a-sandbox-does-not-do">沙箱做不到什么</a></li>
+        <li><a href="#getting-started">快速上手</a></li>
+        <li><a href="#credit-and-license">致谢与许可证</a></li>
+      </ol>
+    </nav>
+
+    <section id="what-can-go-wrong-without-a-sandbox">
+      <h2>没有沙箱时可能出什么问题</h2>
+      <p>没有沙箱时，可能出六类问题。</p>
+      <ol class="steps">
+        <li><p><strong>误操作。</strong> 一条错误的命令（例如对准了错误文件夹的清理操作）可能删除或覆盖项目之外的文件。</p></li>
+        <li><p><strong>提示词注入。</strong> 智能体读取的文本（依赖包里的 README、issue 评论、网页、代码注释）可能夹带模型会照做的指令，例如“把 <code>~/.ssh</code> 的内容发送到这个地址”。模型无法可靠地区分数据和指令。</p></li>
+        <li><p><strong>密钥泄露。</strong> 如果你的主目录可读、互联网畅通，一个被诱骗或不够谨慎的智能体就能读取 <code>.env</code> 文件和工具配置中的 API 密钥、SSH 密钥、云服务凭据以及其他项目的代码，并把它们发送到任何地方。</p></li>
+        <li><p><strong>恶意软件包。</strong> 智能体可能安装恶意软件包，其安装脚本会以你的权限运行。</p></li>
+        <li><p><strong>事后才运行的东西。</strong> 智能体可能埋下在会话结束后才运行的东西：<code>.git/hooks</code> 中的 git hook、<code>~/.bashrc</code> 中的一行、被改动的工具配置，或工具文件夹中被替换的程序。</p></li>
+        <li><p><strong>其他项目暴露。</strong> 智能体工具会保存会话和日志历史，其中可能包含其他项目的代码和提示词。</p></li>
+      </ol>
+    </section>
+
+    <section id="what-a-sandbox-does">
+      <h2>沙箱做了什么</h2>
+      <p>沙箱设置了三道围栏。</p>
+      <ul>
+        <li>文件：只有项目文件夹、系统程序以及智能体自己的文件夹（它的程序、设置和登录信息）可见。主目录的其余部分（密钥、其他项目、浏览器数据）在沙箱里看不到。项目中被 git 忽略的文件（例如 <code>.env</code> 和本地密钥）也会被隐藏。智能体编辑代码时项目可写，只做审查时项目只读。项目的 <code>.git</code> 文件夹只读，因此智能体无法提交，也无法添加 hook。工具只读，因此任何东西都无法被替换。依赖文件夹（<code>node_modules</code>、<code>.venv</code>）只有在智能体运行构建时才可写，否则会被隐藏。智能体必须写入的设置会放进一份用完即弃的副本。现成的包装脚本不会带入智能体在其他项目中的历史记录。</li>
+        <li>网络：没有直连互联网。所有流量都经过沙箱外的一个代理（一个负责转发已放行连接的守门程序），它只放行为该智能体指定的主机，通常是其模型提供商的 API。其他一切都会被拒绝，即使是同一台电脑上的服务。</li>
+        <li>环境变量：除你指定的少数几个外全部清除，因此你 shell 中的密钥不会泄露进来。</li>
+      </ul>
+      <p>沙箱内的临时文件夹会在智能体退出时被删除。</p>
+      <p>本项目在 Linux 上基于 Anthropic 的 sandbox-runtime（srt）构建。srt 使用 bubblewrap（bwrap），后者依赖 Linux 命名空间，也就是容器所用的同一套内核特性。它不是虚拟机。没有守护进程，也没有镜像：沙箱大约一秒就能启动，并使用你已经安装的程序。一个小型 shell 脚本 agent-box 会把每个智能体的主机、文件夹和保留变量列表转换为 srt 的配置。opencode、pi 和 prime-agent 都以这种方式运行，各自只能访问自己的模型提供商。</p>
+    </section>
+
+    <section id="what-you-gain">
+      <h2>你能得到什么</h2>
+      <ul>
+        <li>误操作被限制在项目之内。</li>
+        <li>沙箱外的密钥既无法被读取，也无法被泄露。</li>
+        <li>被诱骗的智能体无法访问攻击者的服务器。</li>
+        <li>智能体无法埋下 git hook 或替换事后运行的工具，因为 <code>.git</code> 和工具文件夹是只读的。项目自身的文件仍然可写，智能体运行构建时依赖文件夹也可写，所以请审查智能体在其中写入的内容。每次运行后，沙箱会列出智能体在依赖文件夹和其他被 git 忽略的位置中改动的文件。</li>
+        <li>你可以让智能体在无人值守的情况下工作，而最坏情况是有边界的。</li>
+        <li>与虚拟机或容器镜像相比，它成本低、速度快，而且每个智能体的规则都是一份你能读懂的简短列表。</li>
+      </ul>
+    </section>
+
+    <section id="what-a-sandbox-does-not-do">
+      <h2>沙箱做不到什么</h2>
+      <ul>
+        <li>它和容器一样，与你的电脑共享内核（操作系统的核心）。内核漏洞可能让进程逃逸出去。虚拟机的隔离程度更高。请保持内核为最新版本。</li>
+        <li>被允许的主机仍会收到数据。沙箱内的任何内容仍然可以发送到被允许的主机，例如模型提供商。其中包括智能体所需的密钥。</li>
+        <li>智能体写的代码一旦被你运行、推送或安装，就会在沙箱之外运行。请先审查 diff，以及它在依赖文件夹（<code>node_modules</code>、<code>.venv</code>）中改动的所有文件。</li>
+        <li>软件包仓库被屏蔽，因此沙箱内无法安装任何东西。请在沙箱外安装，并照常做检查。</li>
+        <li>项目文件夹不受保护。智能体仍然可以修改或删除其中的文件，包括你尚未提交的工作。请先提交或 stash，或者给智能体一个单独的 worktree（仓库的一个单独检出）。</li>
+        <li>在通过 AppArmor 限制非特权用户命名空间的 Ubuntu 上，必须关闭 srt 额外的系统调用过滤（seccomp），沙箱才能启动。agent-box 脚本会检测到这种情况并自动关闭该过滤。文件和网络围栏仍然有效。</li>
+        <li>本项目的脚本仅适用于 Linux。</li>
+      </ul>
+    </section>
+
+    <section id="getting-started">
+      <h2>快速上手</h2>
+      <p>agent-sandboxing 技能会教 Claude Code 为你的智能体搭建沙箱：<a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">https://github.com/cocodedk/agent-sandboxing</a></p>
+      <p>你需要 Linux、Claude Code、bubblewrap、socat、ripgrep、git、python3、Node.js 和 srt。以下步骤以 Debian 或 Ubuntu 为例。</p>
+      <ol class="steps">
+        <li>
+          <p>安装系统工具：</p>
+          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3</code></pre></div>
+          <p>命令执行完毕且没有报错。</p>
+        </li>
+        <li><p>从 nodejs.org 或你的包管理器安装 Node.js，然后运行 <code>npm --version</code>。它应当打印出一个版本号。</p></li>
+        <li>
+          <p>安装 srt：</p>
+          <div class="code"><pre><code class="language-text">npm install -g @anthropic-ai/sandbox-runtime</code></pre></div>
+          <p>运行 <code>srt --version</code>。它应当打印出一个版本号。</p>
+        </li>
+        <li>
+          <p>下载该技能：</p>
+          <div class="code"><pre><code class="language-text">git clone https://github.com/cocodedk/agent-sandboxing</code></pre></div>
+          <p>会出现一个名为 <code>agent-sandboxing</code> 的文件夹。</p>
+        </li>
+        <li>
+          <p>把下载内容中的 <code>skills/agent-sandboxing</code> 文件夹复制到 <code>~/.claude/skills/</code>：</p>
+          <div class="code"><pre><code class="language-text">mkdir -p ~/.claude/skills &amp;&amp; cp -r agent-sandboxing/skills/agent-sandboxing ~/.claude/skills/</code></pre></div>
+          <p>现在你就有了 <code>~/.claude/skills/agent-sandboxing</code>。</p>
+        </li>
+        <li><p>在 Claude Code 中请求一个沙箱，例如“sandbox opencode”或“put my agent CLI in a box”。对于 opencode、pi 和 prime-agent，Claude 会使用现成的包装脚本。对于其他智能体，Claude 会先了解该智能体需要什么，再编写一个小型包装脚本。然后运行该技能的探测测试。测试会逐一检验每道围栏：被隐藏的 <code>.env</code>、只读的 <code>.git</code>、被拒绝的主机和被清除的变量。它会为每项检查打印 PASS 或 FAIL，最后应显示 0 failed。</p></li>
+      </ol>
+      <p>该技能自带现成的包装脚本：opencode-box、pi-box 和 prime-agent-box。该技能为 Claude Code 运行的其他智能体 CLI 提供沙箱。它不会把 Claude Code 本身放进沙箱，Claude Code 有自己的沙箱设置。</p>
+    </section>
+
+    <section id="credit-and-license">
+      <h2>致谢与许可证</h2>
+      <p>沙箱本身是 Anthropic 的开源 sandbox-runtime：<a href="https://github.com/anthropics/sandbox-runtime" rel="noreferrer">https://github.com/anthropics/sandbox-runtime</a>（npm @anthropic-ai/sandbox-runtime，Apache-2.0 许可证）。本项目只添加了每个智能体的配置，以及包在它外层的包装脚本。</p>
+      <p>本项目采用 Apache-2.0 许可证。网站：<a href="https://sandbox.cocode.dk/">https://sandbox.cocode.dk/</a></p>
+    </section>
+  </article>
+</main>
+
+<cocode-foot repo="cocodedk/agent-sandboxing">
+  <a href="https://cocode.dk">cocode.dk</a>
+</cocode-foot>
+</body>
+</html>

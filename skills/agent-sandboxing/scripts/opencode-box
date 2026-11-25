@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# opencode-box: opencode in the agent box (srt), run from a repository. The repository is writable but for its .git,
+# its git-ignored files (.env, keys) are hidden, no other folder of the home is there but opencode's own, no
+# environment variable is, and opencode's own hosts are the only network. Every argument goes to opencode:
+# opencode-box opens its screen, opencode-box run "..." runs one prompt. Ignored folders (node_modules, .venv, build
+# output) are empty in the box and what is written there is lost, and no package registry is reachable: it reads and
+# edits code, but most test suites cannot run in it. A git-ignored file the run makes stays, and is listed at the end. It runs on a copy of opencode's database holding only the login:
+# no other session is there, and its own is thrown away at the end. opencode-box --persist [...] keeps this
+# repository's sessions from one run to the next (--continue works), in a copy of its own under OC_BOX_SESSIONS; one
+# such run per repository at a time. Sourced (as probe.sh does), it only sets the box and returns.
+set -euo pipefail
+# shellcheck source=agent-box.sh
+source "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/agent-box.sh"
+readonly OC_STORE="$HOME/.local/share/opencode"   # its login and every project's sessions, in one database file
+readonly OC_BOX_SESSIONS="$HOME/.local/share/opencode-box"   # --persist: one login-only database per repository
+readonly OC_PERSIST=--persist
+readonly OC_HASH_CHARS=8   # of the repository path's hash, in its kept copy's name
+# The tables the copy of that database keeps: the login and opencode's own bookkeeping. Every other one (sessions,
+# messages, projects) is emptied, so the box holds no other project's work.
+readonly OC_DB_KEEP=(credential migration kv account account_state control_account machine)
+
+BOX_MODE=write
+BOX_TERM="${TERM:-dumb}"
+BOX_DOMAINS=("opencode.ai" "*.opencode.ai")   # the models, the login and the model list (models.opencode.ai)
+# opencode itself, and the programs it keeps in its store (rg, language servers), which run outside the box too:
+# read-only, or a model could plant one there. The rest of the store is not in the box: opencode writes its snapshots,
+# logs and shell output into an empty folder there, thrown away at the end.
+BOX_READ=("$HOME/.opencode" "$HOME/.config/opencode" "$HOME/.cache/opencode" "$OC_STORE/bin")
+BOX_HIDE=("$HOME/.config/opencode/service.json")   # the background service's password: a way out
+BOX_PATH="$HOME/.opencode/bin"
+BOX_KEEP=(OPENCODE_DB)
+if (return 0 2> /dev/null); then return 0; fi
+
+# oc_login_db [folder]: opencode's database copied with only the login in it, OPENCODE_DB pointing at the copy, and its
+# folder the box's to write in. With a folder (--persist) the copy lives there and keeps its sessions from one run to
+# the next: made once, its login (credential) renewed from the real database each time. Without one, OC_LOGIN names a
+# temporary folder (mode 700) the exit trap removes.
+oc_login_db() {
+  local src="${OPENCODE_DB:-opencode.db}" dir   # opencode's own choice, a name in its store or a path
+  [[ "$src" == /* ]] || src="$OC_STORE/$src"
+  if [ -n "${1:-}" ]; then dir=$1; mkdir -p -m 700 "$dir"; else OC_LOGIN="$(mktemp -d)"; dir=$OC_LOGIN; fi
+  python3 -c '
+import os, sqlite3, sys
+src, dst, keep = sys.argv[1], sys.argv[2], set(sys.argv[3:])
+s = sqlite3.connect("file:" + src + "?mode=ro", uri=True)
+kept = os.path.exists(dst) and os.path.getsize(dst) > 0   # a first run that failed leaves an empty file
+d = sqlite3.connect(dst)
+if kept:   # by column name: the kept copy may predate an opencode update
+    rows = s.execute("select * from credential")
+    cols = [c[0] for c in rows.description if c[0] in {r[1] for r in d.execute("pragma table_info(credential)")}]
+    rows = s.execute("select " + ",".join(cols) + " from credential").fetchall()
+    d.execute("delete from credential")
+    if rows:   # none when logged out: opencode then says so itself
+        d.executemany("insert into credential (" + ",".join(cols) + ") values (" + ",".join("?" * len(cols)) + ")", rows)
+else:
+    s.backup(d)
+    for (t,) in d.execute("select name from sqlite_master where type = ? and name not like ?", ("table", "sqlite_%")).fetchall():
+        if t not in keep:
+            d.execute(f"delete from [{t}]")
+d.commit()
+kept or d.execute("vacuum")' "$src" "$dir/opencode.db" "${OC_DB_KEEP[@]}" \
+    || { echo "opencode-box: could not copy opencode's login from $src into $dir" >&2; return 2; }
+  export OPENCODE_DB="$dir/opencode.db"   # an absolute path (opencode 2.4.1 and later)
+  BOX_WRITE=("$dir")
+}
+
+OC_LOGIN=""
+persist=""
+if [ "${1:-}" = "$OC_PERSIST" ]; then
+  shift
+  top="$(git rev-parse --show-toplevel)"
+  persist="$OC_BOX_SESSIONS/${top##*/}-$(printf '%s' "$top" | sha256sum | cut -c1-"$OC_HASH_CHARS")"
+fi
+trap 'agent_box_sweep; [ -z "$OC_LOGIN" ] || rm -rf "$OC_LOGIN"' EXIT   # srt's placeholders, if the terminal closes
+trap 'exit 129' HUP INT TERM
+
+oc_login_db ${persist:+"$persist"}
+# --standalone: opencode run otherwise hands the work to its background service, outside the box, whose shell the
+# model would use. opencode session list and export need it too, or they read the real database through that service.
+rc=0
+agent_box opencode --standalone "$@" || rc=$?
+[ -z "$BOX_CHANGED" ] || echo "$BOX_CHANGED" >&2
+exit "$rc"

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://sandbox.cocode.dk/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sandbox.cocode.dk/"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://sandbox.cocode.dk/da/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://sandbox.cocode.dk/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://sandbox.cocode.dk/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sandbox.cocode.dk/"/>
+  </url>
+  <url>
+    <loc>https://sandbox.cocode.dk/da/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sandbox.cocode.dk/"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://sandbox.cocode.dk/da/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://sandbox.cocode.dk/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://sandbox.cocode.dk/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sandbox.cocode.dk/"/>
+  </url>
+  <url>
+    <loc>https://sandbox.cocode.dk/es/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sandbox.cocode.dk/"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://sandbox.cocode.dk/da/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://sandbox.cocode.dk/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://sandbox.cocode.dk/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sandbox.cocode.dk/"/>
+  </url>
+  <url>
+    <loc>https://sandbox.cocode.dk/zh/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sandbox.cocode.dk/"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://sandbox.cocode.dk/da/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://sandbox.cocode.dk/es/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://sandbox.cocode.dk/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sandbox.cocode.dk/"/>
+  </url>
+</urlset>

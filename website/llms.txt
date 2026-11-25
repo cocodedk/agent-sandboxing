@@ -1,0 +1,32 @@
+# agent-sandboxing
+
+> Why and how to run AI coding agents (opencode, pi, prime-agent and other agent CLIs) in a sandbox: the risks, what a sandbox does and does not do, and how to start. The project is a Claude Code skill that builds the sandbox on Anthropic's sandbox-runtime (srt) on Linux.
+
+The site is one explanatory page in four languages. Each page declares WebMCP tools (`document.modelContext.registerTool`), so an agent in the visitor's browser can read the page through typed tools instead of scraping it. The tools read the page at call time, answer in the page's language and never throw: a bad input returns `{ ok: false, error, ... }` with the valid options.
+
+## Pages (each declares the same WebMCP tools)
+
+- [English](https://sandbox.cocode.dk/)
+- [Dansk](https://sandbox.cocode.dk/da/)
+- [Español](https://sandbox.cocode.dk/es/)
+- [简体中文](https://sandbox.cocode.dk/zh/)
+
+## WebMCP tools
+
+- `describe` {}: what the page is; returns `{ ok, page, source, language, title, lead, sections: [{id, heading}], languages: [code], tools }`.
+- `list_sections` {}: the sections in reading order; returns `{ ok, language, sections: [{id, heading, index}] }`.
+- `get_section` {id}: one section's full text and code blocks; returns `{ ok, id, heading, text, truncated, commands }`, or `{ ok: false, error, valid_ids }` for an unknown id.
+- `list_languages` {}: the languages the page is published in, read from its hreflang links; returns `{ ok, current, languages: [{code, name, url, current}] }`.
+- `get_install_steps` {id?}: the numbered install steps of Getting started, optionally for one section id; runs nothing; returns `{ ok, language, lists: [{section_id, heading, steps: [{n, text, commands}]}] }`.
+- `copy_command` {index}: puts the code block at that 1-based position on the clipboard; runs nothing; returns `{ ok, index, command, copied }` (copied is false when the browser refused clipboard access), or `{ ok: false, error, count }`.
+
+Section ids are the same in every language: what-can-go-wrong-without-a-sandbox, what-a-sandbox-does, what-you-gain, what-a-sandbox-does-not-do, getting-started, credit-and-license.
+
+## Source
+
+- [Repository](https://github.com/cocodedk/agent-sandboxing): the skill is in `skills/agent-sandboxing` (SKILL.md, references, the agent-box script, ready-made wrappers opencode-box, pi-box and prime-agent-box, and the probe test).
+- License: Apache-2.0.
+
+## Credit
+
+The sandbox itself is Anthropic's open-source [sandbox-runtime](https://github.com/anthropics/sandbox-runtime) (npm @anthropic-ai/sandbox-runtime, Apache-2.0). This project adds the settings for each agent and the wrappers around it.

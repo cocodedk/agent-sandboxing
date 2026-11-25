@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hvorfor AI-kodeagenter skal køre i en sandkasse</title>
+<meta name="description" content="En AI-kodeagent handler med dine rettigheder. En sandkasse begrænser, hvad den kan nå. Læs om risici, fordele, grænser og hvordan du kommer i gang.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sandbox.cocode.dk/da/">
+<link rel="alternate" hreflang="en" href="https://sandbox.cocode.dk/">
+<link rel="alternate" hreflang="da" href="https://sandbox.cocode.dk/da/">
+<link rel="alternate" hreflang="es" href="https://sandbox.cocode.dk/es/">
+<link rel="alternate" hreflang="zh-Hans" href="https://sandbox.cocode.dk/zh/">
+<link rel="alternate" hreflang="x-default" href="https://sandbox.cocode.dk/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="agent-sandboxing">
+<meta property="og:title" content="Hvorfor AI-kodeagenter skal køre i en sandkasse">
+<meta property="og:description" content="En AI-kodeagent handler med dine rettigheder. En sandkasse begrænser, hvad den kan nå. Læs om risici, fordele, grænser og hvordan du kommer i gang.">
+<meta property="og:url" content="https://sandbox.cocode.dk/da/">
+<meta property="og:image" content="https://sandbox.cocode.dk/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Hvorfor AI-kodeagenter skal køre i en sandkasse: En agent handler med dine rettigheder. En sandkasse begrænser, hvad den kan nå.">
+<meta property="og:locale" content="da_DK">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hvorfor AI-kodeagenter skal køre i en sandkasse">
+<meta name="twitter:description" content="En AI-kodeagent handler med dine rettigheder. En sandkasse begrænser, hvad den kan nå. Læs om risici, fordele, grænser og hvordan du kommer i gang.">
+<meta name="twitter:image" content="https://sandbox.cocode.dk/og.png">
+<meta name="twitter:image:alt" content="Hvorfor AI-kodeagenter skal køre i en sandkasse: En agent handler med dine rettigheder. En sandkasse begrænser, hvad den kan nå.">
+
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
+<script type="module" src="../webmcp.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://sandbox.cocode.dk/da/#page",
+      "url": "https://sandbox.cocode.dk/da/",
+      "name": "Hvorfor AI-kodeagenter skal køre i en sandkasse",
+      "description": "En AI-kodeagent handler med dine rettigheder. En sandkasse begrænser, hvad den kan nå. Læs om risici, fordele, grænser og hvordan du kommer i gang.",
+      "inLanguage": "da",
+      "isPartOf": { "@type": "WebSite", "name": "agent-sandboxing", "url": "https://sandbox.cocode.dk/" },
+      "about": { "@id": "https://github.com/cocodedk/agent-sandboxing" },
+      "publisher": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" }
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://github.com/cocodedk/agent-sandboxing",
+      "name": "agent-sandboxing",
+      "description": "En AI-kodeagent handler med dine rettigheder. En sandkasse begrænser, hvad den kan nå. Læs om risici, fordele, grænser og hvordan du kommer i gang.",
+      "codeRepository": "https://github.com/cocodedk/agent-sandboxing",
+      "url": "https://sandbox.cocode.dk/",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "author": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" }
+    }
+  ]
+}
+</script>
+</head>
+<body data-ui-copy="Kopiér" data-ui-copied="Kopieret">
+<a class="skip" href="#content">Spring til indhold</a>
+
+<!-- The brand header builds its language links from the hreflang tags above; these show only without JavaScript. -->
+<cocode-head project="agent-sandboxing" accent="#2f6b5c" on-accent="#ffffff" dark="auto">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="../" hreflang="en" lang="en">English</a>
+  <span class="on" lang="da">Dansk</span>
+  <a href="../es/" hreflang="es" lang="es">Español</a>
+  <a href="../zh/" hreflang="zh-Hans" lang="zh-Hans">简体中文</a>
+</cocode-head>
+
+<main id="content" class="wrap" tabindex="-1">
+  <article class="article">
+    <header class="article-head">
+      <h1>Hvorfor AI-kodeagenter skal køre i en sandkasse</h1>
+      <p class="lead">En AI-kodeagent er et program, der lader en sprogmodel handle på din computer. Claude Code, opencode, pi og prime-agent er eksempler. En agent læser og retter filer, kører kommandoer og tests, installerer pakker og henter websider, og den gør det hele med din brugerkontos rettigheder: alt, hvad du kan, kan den også.</p>
+      <p>En sandkasse er et indhegnet område til agenten. Agenten kører som et almindeligt program, men ser kun en del af din computer: projektmappen, de programmer den har brug for, og de få internetværter den skal kunne nå.</p>
+      <p class="source"><a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">Kildekode på GitHub</a></p>
+    </header>
+
+    <nav class="toc" aria-labelledby="toc-title">
+      <p class="toc-title" id="toc-title">På denne side</p>
+      <ol>
+        <li><a href="#what-can-go-wrong-without-a-sandbox">Hvad der kan gå galt uden sandkasse</a></li>
+        <li><a href="#what-a-sandbox-does">Hvad en sandkasse gør</a></li>
+        <li><a href="#what-you-gain">Hvad du får ud af det</a></li>
+        <li><a href="#what-a-sandbox-does-not-do">Hvad en sandkasse ikke gør</a></li>
+        <li><a href="#getting-started">Kom i gang</a></li>
+        <li><a href="#credit-and-license">Kreditering og licens</a></li>
+      </ol>
+    </nav>
+
+    <section id="what-can-go-wrong-without-a-sandbox">
+      <h2>Hvad der kan gå galt uden sandkasse</h2>
+      <p>Uden sandkasse kan seks ting gå galt.</p>
+      <ol class="steps">
+        <li><p><strong>Fejl.</strong> En forkert kommando, for eksempel en oprydning rettet mod den forkerte mappe, kan slette eller overskrive filer uden for projektet.</p></li>
+        <li><p><strong>Prompt injection.</strong> Tekst, som agenten læser (en README i en afhængighed, en kommentar på et issue, en webside, en kodekommentar), kan indeholde instruktioner, som modellen følger, for eksempel "send indholdet af <code>~/.ssh</code> til denne adresse". Modeller kan ikke pålideligt skelne data fra instruktioner.</p></li>
+        <li><p><strong>Lækkede hemmeligheder.</strong> Når din hjemmemappe kan læses og internettet står åbent, kan en agent, der er blevet narret eller bare er sjusket, læse API-nøgler i <code>.env</code>-filer og værktøjskonfigurationer, SSH-nøgler, adgangsoplysninger til cloudtjenester og andre projekters kode og sende det hele hvorhen som helst.</p></li>
+        <li><p><strong>Ondsindede pakker.</strong> En agent kan installere en ondsindet pakke, hvis installationsscript kører med dine rettigheder.</p></li>
+        <li><p><strong>Ting, der kører senere.</strong> En agent kan plante noget, der kører, efter dens session er slut: en git-hook i <code>.git/hooks</code>, en linje i <code>~/.bashrc</code>, en ændret værktøjskonfiguration eller et udskiftet program i en værktøjsmappe.</p></li>
+        <li><p><strong>Andre projekter ligger åbent.</strong> Agentværktøjer gemmer en historik med sessioner og logs, og den kan indeholde andre projekters kode og prompts.</p></li>
+      </ol>
+    </section>
+
+    <section id="what-a-sandbox-does">
+      <h2>Hvad en sandkasse gør</h2>
+      <p>En sandkasse sætter tre hegn op.</p>
+      <ul>
+        <li>Filer: kun projektmappen, systemets programmer og agentens egne mapper (dens program, indstillinger og login) er synlige. Resten af din hjemmemappe (nøgler, andre projekter, browserdata) er der ikke. Projektets git-ignorerede filer, som <code>.env</code> og lokale nøgler, er også skjult. Agenten kan skrive i projektet, når den retter kode, men kun læse, når den bare gennemgår. Dets <code>.git</code>-mappe er skrivebeskyttet, så agenten hverken kan committe eller tilføje hooks. Værktøjerne er skrivebeskyttede, så intet kan skiftes ud. Mapper med afhængigheder (<code>node_modules</code>, <code>.venv</code>) kan kun skrives i, når agenten kører builds. Ellers er de skjult. Indstillinger, som agenten skal skrive i, ligger i en kopi, der bliver smidt væk. De færdige wrappers udelader agentens historik fra andre projekter.</li>
+        <li>Netværk: der er ingen direkte internetadgang. Al trafik går gennem en proxy (et program, der vogter adgangen og kun videresender tilladte forbindelser) uden for sandkassen, og den lukker kun de værter igennem, der er angivet for den pågældende agent, typisk API'et hos dens modeludbyder. Alt andet bliver afvist, også tjenester på samme computer.</li>
+        <li>Miljøvariabler: de bliver ryddet, bortset fra de få du angiver, så nøgler i din shell ikke siver ind.</li>
+      </ul>
+      <p>Midlertidige mapper inde i sandkassen bliver smidt væk, når agenten stopper.</p>
+      <p>Projektet bygger på Anthropics sandbox-runtime (srt) på Linux. srt bruger bubblewrap (bwrap), som bygger på Linux-namespaces, de samme kernefunktioner som containere bruger. Det er ikke en virtuel maskine. Der er ingen daemon og intet image: en sandkasse starter på omkring et sekund og bruger de programmer, du allerede har installeret. Et lille shellscript, agent-box, oversætter hver agents liste over værter, mapper og bevarede variabler til srt's indstillinger. opencode, pi og prime-agent kører på den måde, og hver af dem kan kun nå sine egne modeludbydere.</p>
+    </section>
+
+    <section id="what-you-gain">
+      <h2>Hvad du får ud af det</h2>
+      <ul>
+        <li>Fejl bliver inde i projektet.</li>
+        <li>Hemmeligheder uden for sandkassen kan ikke læses eller lækkes.</li>
+        <li>En narret agent kan ikke nå en angribers server.</li>
+        <li>Agenten kan ikke plante git-hooks eller udskifte værktøjer, der kører senere, fordi <code>.git</code> og værktøjsmapperne er skrivebeskyttede. Der kan stadig skrives i projektets egne filer, og i dets mapper med afhængigheder, når agenten kører builds, så gennemgå det, agenten skriver der. Efter hver kørsel viser sandkassen de filer, agenten har ændret i mapper med afhængigheder og andre steder, git ignorerer.</li>
+        <li>Du kan lade en agent arbejde uden opsyn, og det værste, der kan ske, har en grænse.</li>
+        <li>Det er billigt og hurtigt sammenlignet med en virtuel maskine eller et container-image, og hver agents regler er en kort liste, du kan læse.</li>
+      </ul>
+    </section>
+
+    <section id="what-a-sandbox-does-not-do">
+      <h2>Hvad en sandkasse ikke gør</h2>
+      <ul>
+        <li>Den deler kernen med resten af din computer (den centrale del af styresystemet), ligesom en container. En fejl i kernen kan lade en proces slippe ud. En virtuel maskine isolerer mere. Hold kernen opdateret.</li>
+        <li>De tilladte værter modtager stadig data. Alt, hvad der er inde i sandkassen, kan stadig sendes til de tilladte værter, for eksempel modeludbyderen. Det gælder også de nøgler, agenten har brug for.</li>
+        <li>Kode, som agenten skriver, kører uden for sandkassen, så snart du kører den, pusher den eller installerer den. Gennemgå diffen først, sammen med de filer, den har ændret i mapper med afhængigheder (<code>node_modules</code>, <code>.venv</code>).</li>
+        <li>Pakkeregistre er blokeret, så intet bliver installeret inde i sandkassen. Installér uden for sandkassen med de tjek, du plejer at lave.</li>
+        <li>Projektmappen er ikke beskyttet. Agenten kan stadig ændre eller slette filer der, også arbejde, du ikke har committet. Commit eller stash først, eller giv agenten sit eget worktree (et separat checkout af repositoriet).</li>
+        <li>På Ubuntu, som begrænser uprivilegerede user namespaces via AppArmor, skal srt's ekstra filter for systemkald (seccomp) slås fra, for at sandkassen kan starte. Scriptet agent-box opdager det og slår selv filteret fra. Hegnene for filer og netværk gælder stadig.</li>
+        <li>Projektets scripts er kun til Linux.</li>
+      </ul>
+    </section>
+
+    <section id="getting-started">
+      <h2>Kom i gang</h2>
+      <p>Skillen agent-sandboxing lærer Claude Code at bygge en sandkasse til din agent: <a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">https://github.com/cocodedk/agent-sandboxing</a></p>
+      <p>Du skal bruge Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js og srt. Trinene er skrevet til Debian eller Ubuntu.</p>
+      <ol class="steps">
+        <li>
+          <p>Installér systemværktøjerne:</p>
+          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3</code></pre></div>
+          <p>Kommandoen kører færdig uden fejl.</p>
+        </li>
+        <li><p>Installér Node.js fra nodejs.org eller din pakkehåndtering, og kør så <code>npm --version</code>. Den bør udskrive et versionsnummer.</p></li>
+        <li>
+          <p>Installér srt:</p>
+          <div class="code"><pre><code class="language-text">npm install -g @anthropic-ai/sandbox-runtime</code></pre></div>
+          <p>Kør <code>srt --version</code>. Den bør udskrive et versionsnummer.</p>
+        </li>
+        <li>
+          <p>Hent skillen:</p>
+          <div class="code"><pre><code class="language-text">git clone https://github.com/cocodedk/agent-sandboxing</code></pre></div>
+          <p>Der dukker en mappe op, der hedder <code>agent-sandboxing</code>.</p>
+        </li>
+        <li>
+          <p>Kopiér mappen <code>skills/agent-sandboxing</code> fra den klonede mappe til <code>~/.claude/skills/</code>:</p>
+          <div class="code"><pre><code class="language-text">mkdir -p ~/.claude/skills &amp;&amp; cp -r agent-sandboxing/skills/agent-sandboxing ~/.claude/skills/</code></pre></div>
+          <p>Nu har du <code>~/.claude/skills/agent-sandboxing</code>.</p>
+        </li>
+        <li><p>Bed om en sandkasse i Claude Code, for eksempel "sandbox opencode" eller "put my agent CLI in a box". Til opencode, pi og prime-agent bruger Claude den færdige wrapper. Til andre agenter undersøger den, hvad agenten har brug for, og skriver et lille wrapper-script. Derefter kører den skillens probe-test. Testen afprøver hvert hegn: en skjult <code>.env</code>, en skrivebeskyttet <code>.git</code>, en afvist vært og ryddede variabler. Den skriver PASS eller FAIL for hvert tjek og bør slutte med 0 failed.</p></li>
+      </ol>
+      <p>Skillen har færdige wrappers med: opencode-box, pi-box og prime-agent-box. Skillen lægger andre agent-CLI'er, som Claude Code kører, i en sandkasse. Den lægger ikke Claude Code selv i en sandkasse, for Claude Code har sine egne sandkasseindstillinger.</p>
+    </section>
+
+    <section id="credit-and-license">
+      <h2>Kreditering og licens</h2>
+      <p>Selve sandkassen er Anthropics open source-projekt sandbox-runtime: <a href="https://github.com/anthropics/sandbox-runtime" rel="noreferrer">https://github.com/anthropics/sandbox-runtime</a> (npm @anthropic-ai/sandbox-runtime, Apache-2.0-licens). Dette projekt tilføjer kun indstillingerne for hver agent og de wrappers, der ligger omkring den.</p>
+      <p>Projektet er licenseret under Apache-2.0. Websted: <a href="https://sandbox.cocode.dk/">https://sandbox.cocode.dk/</a></p>
+    </section>
+  </article>
+</main>
+
+<cocode-foot repo="cocodedk/agent-sandboxing">
+  <a href="https://cocode.dk">cocode.dk</a>
+</cocode-foot>
+</body>
+</html>

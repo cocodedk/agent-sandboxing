@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# pi-box: pi in the agent box, run from a repository. The repository is writable but for its .git; its git-ignored
+# files are hidden but for the dependency folders (node_modules, .venv, venv); the home's programs (node, npm, uv's
+# python and tools) are there read-only, and no other folder of the home is. The network is pi's providers (PI_HOSTS)
+# and nothing else: no package registry, no web page. pi runs on a copy of its config folder, thrown away at the end
+# with its sessions (no resume) and any change to its settings; its MCP servers (mcp.json) stay out. Every provider's
+# key in PI_KEYS is in the box, and the model could send one to another provider in PI_HOSTS. Every argument goes to
+# pi: pi-box opens its screen, pi-box -p "..." runs one prompt. The copy goes on any exit but a SIGKILL, which leaves
+# it in the temporary folder (mode 700). Sourced (as probe.sh does), it only sets the box and returns.
+set -euo pipefail
+# shellcheck source=agent-box.sh
+source "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/agent-box.sh"
+readonly PI_AGENT="$HOME/.pi/agent"   # pi's own install: its program, wherever its config is
+readonly PI_CONFIG=(settings.json models.json models-store.json trust.json auth.json AGENTS.md)
+readonly PI_HOSTS=(openrouter.ai api.anthropic.com)          # add your providers' hosts here
+readonly PI_KEYS=(OPENROUTER_API_KEY ANTHROPIC_API_KEY)      # and their keys, passed in when set, as pi reads them
+from="${PI_CODING_AGENT_DIR:-$PI_AGENT}"
+[ -d "$from" ] || { echo "pi-box: no config folder $from (PI_CODING_AGENT_DIR)" >&2; exit 2; }
+
+BOX_MODE=build
+BOX_TERM="${TERM:-dumb}"
+BOX_DOMAINS=("${PI_HOSTS[@]}")
+BOX_READ=("$PI_AGENT/bin" "$PI_AGENT/install")
+BOX_PATH="$PI_AGENT/bin"
+BOX_KEEP=(PI_CODING_AGENT_DIR "${PI_KEYS[@]}")
+agent_box_tools
+if (return 0 2> /dev/null); then return 0; fi
+
+# pi writes its config folder as it runs (a lock beside trust.json), so it gets a copy: mode 700, as it holds the keys.
+PI_CODING_AGENT_DIR="$(mktemp -d)"
+export PI_CODING_AGENT_DIR
+trap 'rm -rf "$PI_CODING_AGENT_DIR"; agent_box_sweep' EXIT
+trap 'exit 129' HUP INT TERM
+for f in "${PI_CONFIG[@]}"; do   # -L: AGENTS.md may link to a file outside the box
+  [ ! -e "$from/$f" ] || cp -L "$from/$f" "$PI_CODING_AGENT_DIR/"
+done
+BOX_WRITE=("$PI_CODING_AGENT_DIR")
+
+rc=0
+agent_box pi "$@" || rc=$?
+[ -z "$BOX_CHANGED" ] || echo "$BOX_CHANGED" >&2
+exit "$rc"

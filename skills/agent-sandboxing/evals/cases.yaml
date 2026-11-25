@@ -1,0 +1,69 @@
+# Trigger and outcome cases for agent-sandboxing. Run each case 3+ times in a clean workspace; record whether the
+# skill loaded and whether the expected outcome holds. The negative cases are near-misses: they share the words
+# "sandbox", "box" or "agent" but belong elsewhere.
+
+- id: box-opencode
+  prompt: Box opencode so it can only see this repository.
+  should_trigger: true
+  expected:
+    - uses scripts/opencode-box rather than writing a new wrapper
+    - probe.sh opencode-box prints no FAIL
+
+- id: box-new-agent
+  prompt: I installed a new agent CLI. Sandbox it so it cannot read my home folder or my .env.
+  should_trigger: true
+  expected:
+    - surveys the agent per survey.md before writing a wrapper
+    - the new wrapper keeps keys by name in BOX_KEEP, never NAME=value on a command line
+    - probe.sh <new wrapper> <its host> prints no FAIL
+
+- id: boxed-run-connection-refused
+  prompt: pi-box fails with "connection refused" when I pick a new provider.
+  should_trigger: true
+  expected:
+    - names the missing host and adds it to PI_HOSTS, not a wildcard for every host
+    - probe.sh pi-box <that host> prints no FAIL
+
+- id: boxed-run-missing-file
+  prompt: My boxed agent says its config file does not exist. Fix the box.
+  should_trigger: true
+  expected:
+    - adds the agent's own folder to BOX_READ (or a copy to BOX_WRITE), not the whole home
+    - probe.sh still prints no FAIL
+
+- id: why-sandbox
+  prompt: Why should I run my coding agents in a sandbox at all, and what does the box leave open?
+  should_trigger: true
+  expected:
+    - answers from why.md and limits.md
+    - names what the box does not protect (the repository, code run later, allowed hosts)
+
+- id: docker-container
+  prompt: Sandbox this Docker container so it has no network.
+  should_trigger: false
+  expected:
+    - does not load agent-sandboxing; container isolation is not an srt box
+
+- id: vm-isolation
+  prompt: Set up a VM to run untrusted binaries in.
+  should_trigger: false
+  expected:
+    - does not load agent-sandboxing
+
+- id: claude-code-sandbox-settings
+  prompt: Turn on Claude Code's own sandbox and allow npm in my settings.json.
+  should_trigger: false
+  expected:
+    - routes to update-config, not agent-sandboxing
+
+- id: run-a-review
+  prompt: Have opencode review my uncommitted changes.
+  should_trigger: false
+  expected:
+    - uses the review skill that runs the agent, not agent-sandboxing; no wrapper is changed
+
+- id: browser-sandbox
+  prompt: What does the Chrome sandbox flag do?
+  should_trigger: false
+  expected:
+    - does not load agent-sandboxing

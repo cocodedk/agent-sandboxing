@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!-- Render template for og.png (1200x630), not a page. Re-render after any change, from the repository root:
+     google-chrome-stable --headless --disable-gpu --no-sandbox --hide-scrollbars \
+       --window-size=1200,630 --screenshot=website/og.png "file://$PWD/website/og-image.html" -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>agent-sandboxing OG image</title>
+<style>
+  :root { --accent: #2f6b5c; --paper: #f7f6f2; --ink: #1c2321; --tint: #e4efea; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    box-sizing: border-box; padding: 64px 72px; background: var(--paper); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Arial, sans-serif;
+    display: grid; grid-template-columns: 1fr 300px; gap: 56px; align-items: center;
+    border-bottom: 18px solid var(--accent);
+  }
+  .name { font: 600 26px/1 ui-monospace, "SFMono-Regular", Menlo, "Liberation Mono", monospace; color: var(--accent); }
+  h1 { margin: 28px 0 0; font-size: 72px; line-height: 1.04; font-weight: 800; letter-spacing: -.025em; }
+  p { margin: 28px 0 0; font-size: 30px; line-height: 1.35; color: #3d4744; }
+  .site { margin-top: 40px; font-size: 22px; color: #59625f; }
+  .box { width: 300px; height: 300px; border-radius: 36px; background: var(--accent); display: grid; place-items: center; }
+  .box svg { width: 220px; height: 220px; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="name">agent-sandboxing</div>
+    <h1>Why sandbox AI coding agents</h1>
+    <p>An agent acts with your permissions. A sandbox limits what it can reach.</p>
+    <div class="site">sandbox.cocode.dk</div>
+  </div>
+  <div class="box" aria-hidden="true">
+    <svg viewBox="6 6 20 20">
+      <rect x="7.25" y="7.25" width="17.5" height="17.5" rx="2.5" fill="none" stroke="#f7f6f2" stroke-width="1.2" stroke-dasharray="3 1.8"/>
+      <path d="M12 12l5 4-5 4" fill="none" stroke="#f7f6f2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="17" y="19" width="5" height="1.8" rx=".8" fill="#f7f6f2"/>
+    </svg>
+  </div>
+</body>
+</html>

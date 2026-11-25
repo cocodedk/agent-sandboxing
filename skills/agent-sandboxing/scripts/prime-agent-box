@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# prime-agent-box: prime-agent in the agent box, run from a repository. The repository is writable but for its .git;
+# its git-ignored files are hidden but for the dependency folders (node_modules, .venv, venv); the home's programs
+# (node, npm, uv's python and tools) are there read-only, and no other folder of the home is. The network is OpenRouter
+# and Anthropic and nothing else: no package registry, no web page. Its config folder is there read-only and its keys
+# folder (the web search key) hidden, so it saves no session: run it with --no-session. One-shot only (-p): the
+# interactive screen needs a daemon that cannot start in the box. Of its config folder only PRIME_SHOWN is there; the
+# rest (sessions, logs, journals and telemetry of every project, and anything it adds later) is hidden. Every argument goes to prime-agent. Sourced (as probe.sh does), it only sets the box and returns.
+set -euo pipefail
+# shellcheck source=agent-box.sh
+source "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/agent-box.sh"
+readonly PRIME_CONFIG="$HOME/.prime/agent"
+readonly PRIME_PROGRAM="$HOME/.local/share/prime-agent"   # its releases, where its command links to
+readonly PRIME_HOSTS=(openrouter.ai api.anthropic.com)
+# What of its config folder a run reads: program parts, models, skills, its MCP catalog, settings and Anthropic's login.
+readonly PRIME_SHOWN=(AGENTS.md auth.json bin harness kernel-venv mcp mcp-service-catalog.v2.json models settings.json
+  skills)
+[ -d "$PRIME_CONFIG" ] && [ -d "$PRIME_PROGRAM" ] \
+  || { echo "prime-agent-box: prime-agent is not installed in $PRIME_PROGRAM with its config in $PRIME_CONFIG" >&2; exit 2; }
+
+BOX_MODE=build
+BOX_TERM="${TERM:-dumb}"
+BOX_DOMAINS=("${PRIME_HOSTS[@]}")
+BOX_READ=("$PRIME_PROGRAM" "$PRIME_CONFIG")
+# Hidden: every entry of the config folder not in PRIME_SHOWN, so a new one is hidden by default; among them its keys
+# (the web-search key), and the sessions, logs, command journals and telemetry of every project it ran in. A hidden
+# folder is an empty one in the box, so a run's own session and log go there and are thrown away.
+BOX_HIDE=()
+for f in "$PRIME_CONFIG"/* "$PRIME_CONFIG"/.[!.]*; do
+  [ ! -e "$f" ] || [[ " ${PRIME_SHOWN[*]} " == *" ${f##*/} "* ]] || BOX_HIDE+=("$f")
+done
+# Its Python kernel's venv sits in the read-only config folder: named outright, prime-agent uses it as it is instead of
+# trying to rebuild it there.
+export PRIME_AGENT_KERNEL_PYTHON="$PRIME_CONFIG/kernel-venv/bin/python"
+BOX_KEEP=(OPENROUTER_API_KEY PRIME_AGENT_KERNEL_PYTHON)   # the OpenRouter key: its auth.json holds Anthropic's only
+agent_box_tools
+if (return 0 2> /dev/null); then return 0; fi
+
+trap agent_box_sweep EXIT
+trap 'exit 129' HUP INT TERM
+rc=0
+agent_box prime-agent "$@" || rc=$?
+[ -z "$BOX_CHANGED" ] || echo "$BOX_CHANGED" >&2
+exit "$rc"

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Por qué usar un sandbox con agentes de programación con IA</title>
+<meta name="description" content="Un agente de programación con IA actúa con tus permisos. Un sandbox limita a qué puede acceder. Conoce sus riesgos, beneficios, límites y cómo empezar.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sandbox.cocode.dk/es/">
+<link rel="alternate" hreflang="en" href="https://sandbox.cocode.dk/">
+<link rel="alternate" hreflang="da" href="https://sandbox.cocode.dk/da/">
+<link rel="alternate" hreflang="es" href="https://sandbox.cocode.dk/es/">
+<link rel="alternate" hreflang="zh-Hans" href="https://sandbox.cocode.dk/zh/">
+<link rel="alternate" hreflang="x-default" href="https://sandbox.cocode.dk/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="agent-sandboxing">
+<meta property="og:title" content="Por qué usar un sandbox con agentes de IA">
+<meta property="og:description" content="Un agente de programación con IA actúa con tus permisos. Un sandbox limita a qué puede acceder. Conoce sus riesgos, beneficios, límites y cómo empezar.">
+<meta property="og:url" content="https://sandbox.cocode.dk/es/">
+<meta property="og:image" content="https://sandbox.cocode.dk/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Por qué usar un sandbox con agentes de IA: Un agente actúa con tus permisos. Un sandbox limita a qué puede acceder.">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="da_DK">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Por qué usar un sandbox con agentes de IA">
+<meta name="twitter:description" content="Un agente de programación con IA actúa con tus permisos. Un sandbox limita a qué puede acceder. Conoce sus riesgos, beneficios, límites y cómo empezar.">
+<meta name="twitter:image" content="https://sandbox.cocode.dk/og.png">
+<meta name="twitter:image:alt" content="Por qué usar un sandbox con agentes de IA: Un agente actúa con tus permisos. Un sandbox limita a qué puede acceder.">
+
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="https://brand.cocode.dk/v1.css">
+<script type="module" src="https://brand.cocode.dk/v1.js"></script>
+<script type="module" src="../webmcp.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://sandbox.cocode.dk/es/#page",
+      "url": "https://sandbox.cocode.dk/es/",
+      "name": "Por qué usar un sandbox con agentes de programación con IA",
+      "description": "Un agente de programación con IA actúa con tus permisos. Un sandbox limita a qué puede acceder. Conoce sus riesgos, beneficios, límites y cómo empezar.",
+      "inLanguage": "es",
+      "isPartOf": { "@type": "WebSite", "name": "agent-sandboxing", "url": "https://sandbox.cocode.dk/" },
+      "about": { "@id": "https://github.com/cocodedk/agent-sandboxing" },
+      "publisher": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" }
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://github.com/cocodedk/agent-sandboxing",
+      "name": "agent-sandboxing",
+      "description": "Un agente de programación con IA actúa con tus permisos. Un sandbox limita a qué puede acceder. Conoce sus riesgos, beneficios, límites y cómo empezar.",
+      "codeRepository": "https://github.com/cocodedk/agent-sandboxing",
+      "url": "https://sandbox.cocode.dk/",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "author": { "@type": "Organization", "name": "Cocode", "url": "https://cocode.dk" }
+    }
+  ]
+}
+</script>
+</head>
+<body data-ui-copy="Copiar" data-ui-copied="Copiado">
+<a class="skip" href="#content">Saltar al contenido</a>
+
+<!-- The brand header builds its language links from the hreflang tags above; these show only without JavaScript. -->
+<cocode-head project="agent-sandboxing" accent="#2f6b5c" on-accent="#ffffff" dark="auto">
+  <a href="https://cocode.dk">cocode.dk</a>
+  <a href="../" hreflang="en" lang="en">English</a>
+  <a href="../da/" hreflang="da" lang="da">Dansk</a>
+  <span class="on" lang="es">Español</span>
+  <a href="../zh/" hreflang="zh-Hans" lang="zh-Hans">简体中文</a>
+</cocode-head>
+
+<main id="content" class="wrap" tabindex="-1">
+  <article class="article">
+    <header class="article-head">
+      <h1>Por qué usar un sandbox con agentes de programación con IA</h1>
+      <p class="lead">Un agente de programación con IA es un programa que permite que un modelo de lenguaje actúe en tu computadora. Algunos ejemplos son Claude Code, opencode, pi y prime-agent. Un agente lee y edita archivos, ejecuta comandos y pruebas, instala paquetes y descarga páginas web, todo con los permisos de tu cuenta de usuario: todo lo que tú puedes hacer, él también puede hacerlo.</p>
+      <p>Un sandbox es un espacio cercado para el agente. El agente se ejecuta como un programa normal, pero solo ve una parte de tu computadora: la carpeta del proyecto, los programas que necesita y los pocos hosts de internet a los que debe llegar.</p>
+      <p class="source"><a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">Código fuente en GitHub</a></p>
+    </header>
+
+    <nav class="toc" aria-labelledby="toc-title">
+      <p class="toc-title" id="toc-title">En esta página</p>
+      <ol>
+        <li><a href="#what-can-go-wrong-without-a-sandbox">Qué puede salir mal sin un sandbox</a></li>
+        <li><a href="#what-a-sandbox-does">Qué hace un sandbox</a></li>
+        <li><a href="#what-you-gain">Qué ganas</a></li>
+        <li><a href="#what-a-sandbox-does-not-do">Qué no hace un sandbox</a></li>
+        <li><a href="#getting-started">Primeros pasos</a></li>
+        <li><a href="#credit-and-license">Créditos y licencia</a></li>
+      </ol>
+    </nav>
+
+    <section id="what-can-go-wrong-without-a-sandbox">
+      <h2>Qué puede salir mal sin un sandbox</h2>
+      <p>Sin un sandbox, pueden salir mal seis cosas.</p>
+      <ol class="steps">
+        <li><p><strong>Errores.</strong> Un comando equivocado, como una limpieza dirigida a la carpeta incorrecta, puede borrar o sobrescribir archivos fuera del proyecto.</p></li>
+        <li><p><strong>Inyección de prompts.</strong> El texto que lee el agente (un README en una dependencia, un comentario en un issue, una página web, un comentario en el código) puede contener instrucciones que el modelo sigue, como "envía el contenido de <code>~/.ssh</code> a esta dirección". Los modelos no pueden distinguir de forma fiable los datos de las instrucciones.</p></li>
+        <li><p><strong>Filtración de secretos.</strong> Con tu carpeta personal legible e internet abierto, un agente engañado o descuidado puede leer claves de API en archivos <code>.env</code> y en configuraciones de herramientas, claves SSH, credenciales de la nube y el código de otros proyectos, y enviarlos a cualquier lugar.</p></li>
+        <li><p><strong>Paquetes maliciosos.</strong> Un agente puede instalar un paquete malicioso cuyo script de instalación se ejecuta con tus permisos.</p></li>
+        <li><p><strong>Cosas que se ejecutan después.</strong> Un agente puede dejar algo que se ejecute cuando termine su sesión: un hook de git en <code>.git/hooks</code>, una línea en <code>~/.bashrc</code>, una configuración de herramienta modificada o un programa sustituido en una carpeta de herramientas.</p></li>
+        <li><p><strong>Otros proyectos expuestos.</strong> Las herramientas de agentes guardan un historial de sesiones y logs, que puede contener código y prompts de otros proyectos.</p></li>
+      </ol>
+    </section>
+
+    <section id="what-a-sandbox-does">
+      <h2>Qué hace un sandbox</h2>
+      <p>Un sandbox pone tres barreras.</p>
+      <ul>
+        <li>Archivos: solo son visibles la carpeta del proyecto, los programas del sistema y las carpetas propias del agente (su programa, su configuración y su inicio de sesión). El resto de tu carpeta personal (claves, otros proyectos, datos del navegador) no está ahí. Los archivos del proyecto ignorados por git, como <code>.env</code> y las claves locales, también quedan ocultos. El proyecto tiene permiso de escritura cuando el agente edita código y es de solo lectura cuando solo revisa. Su carpeta <code>.git</code> es de solo lectura, así que el agente no puede hacer commits ni añadir hooks. Las herramientas son de solo lectura, así que no se puede sustituir nada. Las carpetas de dependencias (<code>node_modules</code>, <code>.venv</code>) tienen permiso de escritura solo cuando el agente ejecuta builds; si no, quedan ocultas. La configuración que el agente debe escribir va a una copia desechable. Los wrappers listos para usar dejan fuera el historial del agente de otros proyectos.</li>
+        <li>Red: no hay acceso directo a internet. Todo el tráfico pasa por un proxy (un programa guardián que reenvía las conexiones permitidas) fuera del sandbox, que solo deja pasar los hosts indicados para ese agente, normalmente la API de su proveedor de modelos. Todo lo demás se rechaza, incluso los servicios de la misma computadora.</li>
+        <li>Variables de entorno: se borran todas salvo las pocas que indiques, así que las claves de tu shell no llegan al sandbox.</li>
+      </ul>
+      <p>Las carpetas temporales dentro del sandbox se descartan cuando el agente termina.</p>
+      <p>Este proyecto se basa en sandbox-runtime (srt) de Anthropic, en Linux. srt usa bubblewrap (bwrap), que se apoya en los namespaces de Linux, las mismas funciones del kernel que usan los contenedores. No es una máquina virtual. No hay daemon ni imagen: un sandbox arranca en aproximadamente un segundo y usa los programas que ya tienes instalados. Un pequeño script de shell, agent-box, convierte la lista de hosts, carpetas y variables conservadas de cada agente en la configuración de srt. opencode, pi y prime-agent se ejecutan así, y cada uno llega solo a sus propios proveedores de modelos.</p>
+    </section>
+
+    <section id="what-you-gain">
+      <h2>Qué ganas</h2>
+      <ul>
+        <li>Los errores se quedan dentro del proyecto.</li>
+        <li>Los secretos que están fuera del sandbox no se pueden leer ni filtrar.</li>
+        <li>Un agente engañado no puede llegar al servidor de un atacante.</li>
+        <li>El agente no puede dejar hooks de git ni sustituir herramientas que se ejecuten después, porque <code>.git</code> y las carpetas de herramientas son de solo lectura. Los archivos del propio proyecto siguen teniendo permiso de escritura, y también sus carpetas de dependencias cuando el agente ejecuta builds, así que revisa lo que el agente escriba ahí. Después de cada ejecución, el sandbox lista los archivos que el agente cambió en carpetas de dependencias y en otros lugares ignorados por git.</li>
+        <li>Puedes dejar que un agente trabaje sin supervisión, sabiendo que el peor caso está acotado.</li>
+        <li>Es barato y rápido comparado con una máquina virtual o una imagen de contenedor, y las reglas de cada agente son una lista corta que puedes leer.</li>
+      </ul>
+    </section>
+
+    <section id="what-a-sandbox-does-not-do">
+      <h2>Qué no hace un sandbox</h2>
+      <ul>
+        <li>Comparte el kernel de tu computadora (el núcleo del sistema operativo), como un contenedor. Un bug del kernel podría dejar salir a un proceso. Una máquina virtual aísla más. Mantén el kernel actualizado.</li>
+        <li>Los hosts permitidos siguen recibiendo datos. Todo lo que hay dentro del sandbox todavía se puede enviar a los hosts permitidos, como el proveedor del modelo. Eso incluye las claves que necesita el agente.</li>
+        <li>El código que escribe el agente se ejecuta fuera del sandbox en cuanto lo ejecutas, lo subes con push o lo instalas. Revisa antes el diff, junto con cualquier archivo que haya cambiado en carpetas de dependencias (<code>node_modules</code>, <code>.venv</code>).</li>
+        <li>Los registros de paquetes están bloqueados, así que no se instala nada dentro del sandbox. Instala fuera, con tus comprobaciones habituales.</li>
+        <li>La carpeta del proyecto no está protegida. El agente todavía puede cambiar o borrar archivos ahí, incluido trabajo del que no has hecho commit. Haz commit o stash antes, o dale al agente un worktree aparte (una copia de trabajo separada del repositorio).</li>
+        <li>En Ubuntu, que restringe los user namespaces sin privilegios mediante AppArmor, hay que desactivar el filtro adicional de llamadas al sistema de srt (seccomp) para que el sandbox arranque. El script agent-box lo detecta y desactiva el filtro por sí solo. Las barreras de archivos y de red siguen aplicándose.</li>
+        <li>Los scripts de este proyecto son solo para Linux.</li>
+      </ul>
+    </section>
+
+    <section id="getting-started">
+      <h2>Primeros pasos</h2>
+      <p>La skill agent-sandboxing le enseña a Claude Code a construir un sandbox para tu agente: <a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">https://github.com/cocodedk/agent-sandboxing</a></p>
+      <p>Necesitas Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js y srt. Los pasos usan Debian o Ubuntu.</p>
+      <ol class="steps">
+        <li>
+          <p>Instala las herramientas del sistema:</p>
+          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3</code></pre></div>
+          <p>El comando termina sin errores.</p>
+        </li>
+        <li><p>Instala Node.js desde nodejs.org o con tu gestor de paquetes y luego ejecuta <code>npm --version</code>. Debería mostrar un número de versión.</p></li>
+        <li>
+          <p>Instala srt:</p>
+          <div class="code"><pre><code class="language-text">npm install -g @anthropic-ai/sandbox-runtime</code></pre></div>
+          <p>Ejecuta <code>srt --version</code>. Debería mostrar un número de versión.</p>
+        </li>
+        <li>
+          <p>Descarga la skill:</p>
+          <div class="code"><pre><code class="language-text">git clone https://github.com/cocodedk/agent-sandboxing</code></pre></div>
+          <p>Aparece una carpeta llamada <code>agent-sandboxing</code>.</p>
+        </li>
+        <li>
+          <p>Copia la carpeta <code>skills/agent-sandboxing</code> de la descarga en <code>~/.claude/skills/</code>:</p>
+          <div class="code"><pre><code class="language-text">mkdir -p ~/.claude/skills &amp;&amp; cp -r agent-sandboxing/skills/agent-sandboxing ~/.claude/skills/</code></pre></div>
+          <p>Ahora tienes <code>~/.claude/skills/agent-sandboxing</code>.</p>
+        </li>
+        <li><p>En Claude Code, pide un sandbox, por ejemplo "sandbox opencode" o "put my agent CLI in a box". Para opencode, pi y prime-agent, Claude usa el wrapper listo para usar. Para cualquier otro agente, analiza lo que necesita el agente y escribe un pequeño script wrapper. Después ejecuta la prueba de sondeo de la skill. La prueba comprueba cada barrera: un <code>.env</code> oculto, un <code>.git</code> de solo lectura, un host rechazado y variables borradas. Muestra PASS o FAIL por cada comprobación y debería terminar con 0 failed.</p></li>
+      </ol>
+      <p>La skill incluye wrappers listos para usar: opencode-box, pi-box y prime-agent-box. La skill pone en un sandbox otras CLI de agentes que ejecuta Claude Code. No pone en un sandbox al propio Claude Code, que tiene su propia configuración de sandbox.</p>
+    </section>
+
+    <section id="credit-and-license">
+      <h2>Créditos y licencia</h2>
+      <p>El sandbox en sí es sandbox-runtime, el proyecto de código abierto de Anthropic: <a href="https://github.com/anthropics/sandbox-runtime" rel="noreferrer">https://github.com/anthropics/sandbox-runtime</a> (npm @anthropic-ai/sandbox-runtime, licencia Apache-2.0). Este proyecto solo añade la configuración de cada agente y los wrappers que lo rodean.</p>
+      <p>Este proyecto tiene licencia Apache-2.0. Sitio: <a href="https://sandbox.cocode.dk/">https://sandbox.cocode.dk/</a></p>
+    </section>
+  </article>
+</main>
+
+<cocode-foot repo="cocodedk/agent-sandboxing">
+  <a href="https://cocode.dk">cocode.dk</a>
+</cocode-foot>
+</body>
+</html>
