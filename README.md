@@ -46,7 +46,7 @@ You need Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js a
    ```
 
    You now have `~/.claude/skills/agent-sandboxing`.
-6. In Claude Code, ask for a sandbox, for example "sandbox opencode" or "put my agent CLI in a box". For opencode, pi and prime-agent, Claude uses the ready-made wrapper. For any other agent, it surveys what the agent needs and writes a small wrapper script. Then it runs the skill's probe test. The test tries each fence: a hidden `.env`, a read-only `.git`, a refused host and cleared variables. It prints PASS or FAIL per check and should end with 0 failed.
+6. In Claude Code, ask for a sandbox, for example "sandbox opencode" or "put my agent CLI in a box". For opencode, pi and prime-agent, Claude uses the ready-made wrapper. For any other agent, it surveys what the agent needs and writes a small wrapper script. Before the first run in a repository, it checks for uncommitted work and for secrets in the git history, and tells you what it finds. Then it runs the skill's probe test. The test tries each fence: a hidden `.env`, a read-only `.git`, a refused host and cleared variables. It prints PASS or FAIL per check and should end with 0 failed. The test shows that the sandbox keeps to the wrapper's settings and refuses common credential folders such as `~/.ssh`; whether the other folders and hosts in the wrapper are safe to share is still yours to judge.
 
 The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box. The skill sandboxes other agent CLIs that Claude Code runs. It does not sandbox Claude Code itself, which has its own sandbox settings.
 
@@ -57,6 +57,7 @@ The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box
 - `scripts/agent-box.sh`: the box, sourced by each wrapper; turns an agent's list of hosts, folders and kept variables into srt's settings.
 - `scripts/opencode-box`, `scripts/pi-box`, `scripts/prime-agent-box`: the ready-made wrappers.
 - `scripts/probe.sh`: the probe test that tries each fence and prints PASS or FAIL per check.
+- `scripts/preflight.sh`: a read-only check of your repository before a boxed run; it warns about uncommitted work and secrets in the git history or a remote URL.
 - `evals/cases.yaml`: trigger and outcome cases for the skill.
 
 ## Limits

@@ -53,11 +53,16 @@ readonly BOX_PLACEHOLDERS=(.gitconfig .gitmodules .bashrc .bash_profile .zshrc .
   .mcp.json .vscode .idea .claude/commands .claude/agents .claude)
 # Folders of the home that hold other tools' state and logins: no BOX_TOOLS folder may be one or hold one.
 readonly BOX_TOOLS_REFUSED=("$HOME" "$HOME/.local" "$HOME/.local/share" "$HOME/.config" "$HOME/.cache")
+# Common credential folders and files of the home: no folder the box names may be one, be inside one or hold one.
+readonly BOX_CREDENTIALS=(.ssh .aws .gnupg .config/gh .config/gcloud .docker .kube .netrc .git-credentials
+  .password-store)
 
-# agent_box_refused <folder>: true when the folder is, or holds, one in BOX_TOOLS_REFUSED.
+# agent_box_refused <folder>: true when the folder is, or holds, one in BOX_TOOLS_REFUSED, or is, is inside or holds
+# one in BOX_CREDENTIALS. Any other folder is the caller's judgement.
 agent_box_refused() {
-  local r
-  for r in "${BOX_TOOLS_REFUSED[@]}"; do [[ "$r/" != "${1%/}/"* ]] || return 0; done
+  local r p="${1%/}/"
+  for r in "${BOX_TOOLS_REFUSED[@]}"; do [[ "$r/" != "$p"* ]] || return 0; done
+  for r in "${BOX_CREDENTIALS[@]/#/$HOME/}"; do [[ "$r/" != "$p"* && "$p" != "$r/"* ]] || return 0; done
   return 1
 }
 

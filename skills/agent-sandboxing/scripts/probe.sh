@@ -6,8 +6,10 @@
 # .env and node_modules, it runs agent_box in each mode and checks: the home lists only the folders the box names,
 # .env is refused, .git is not writable, the repository is writable only in write and build, the host answers and
 # https://example.com does not, only kept variables are in the environment, a git-ignored file the run makes is in
-# BOX_CHANGED (write, build), so is a file planted in node_modules with an old modification time (build), and BOX_TOOLS
-# holds no folder of other tools' state (build). Prints PASS or FAIL per check and the totals; exits 1 on any FAIL.
+# BOX_CHANGED (write, build), and so is a file planted in node_modules with an old modification time (build). Once, it
+# checks that no folder in BOX_READ, BOX_WRITE, BOX_TOOLS or BOX_SKILLS is one agent_box_refused refuses: the broad
+# roots of the home and the common credential folders. It does not judge any other folder or host the box names. Prints
+# PASS or FAIL per check and the totals; exits 1 on any FAIL.
 set -euo pipefail
 readonly PROBE_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 readonly PROBE_DEFAULT_SETTINGS="$PROBE_DIR/agent-box.sh"
@@ -56,6 +58,18 @@ under_home() {   # under_home <path...>: the first folder under the home of each
   for p in "$@"; do [[ "$p" != "$HOME/"* ]] || { p="${p#"$HOME/"}"; echo "${p%%/*}"; }; done
 }
 
+bad=""   # the box's folders agent_box_refused refuses, read as srt does: ~ expanded, .. folded, links resolved
+shopt -s dotglob
+for t in ${BOX_READ[@]+"${BOX_READ[@]}"} ${BOX_WRITE[@]+"${BOX_WRITE[@]}"} ${BOX_TOOLS[@]+"${BOX_TOOLS[@]}"} \
+  ${BOX_SKILLS[@]+"${BOX_SKILLS[@]}"}; do
+  [[ "$t" != "~" && "$t" != "~/"* ]] || t="$HOME${t:1}"
+  while IFS= read -r g; do r="$(realpath -m "$(realpath -ms "$g")")"; ! agent_box_refused "$r" || bad+="$r "; done \
+    < <(compgen -G "$t" || echo "$t")
+done
+shopt -u dotglob
+check all "no folder the box names is refused (agent_box_refused)${bad:+ (has: $bad)}" \
+  "$([ -z "$bad" ] && echo true || echo false)"
+
 repo="$(mktemp -d)"
 trap 'agent_box_sweep; cd /; rm -rf "$repo"' EXIT
 cd "$repo"
@@ -103,12 +117,6 @@ for mode in "${PROBE_MODES[@]}"; do
       "$(listed "$PROBE_PLANTED")"
     [ -z "$BOX_CHANGED" ] || rm -f "$changed"
     rm -rf "$PROBE_NEW_DIR"
-  fi
-  if [ "$mode" = build ]; then
-    bad=""
-    for t in ${BOX_TOOLS[@]+"${BOX_TOOLS[@]}"}; do ! agent_box_refused "$t" || bad+="$t "; done
-    check "$mode" "BOX_TOOLS holds no folder of other tools' state${bad:+ (has: $bad)}" \
-      "$([ -z "$bad" ] && echo true || echo false)"
   fi
 done
 

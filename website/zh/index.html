@@ -176,7 +176,7 @@
           <div class="code"><pre><code class="language-text">mkdir -p ~/.claude/skills &amp;&amp; cp -r agent-sandboxing/skills/agent-sandboxing ~/.claude/skills/</code></pre></div>
           <p>现在你就有了 <code>~/.claude/skills/agent-sandboxing</code>。</p>
         </li>
-        <li><p>在 Claude Code 中请求一个沙箱，例如“sandbox opencode”或“put my agent CLI in a box”。对于 opencode、pi 和 prime-agent，Claude 会使用现成的包装脚本。对于其他智能体，Claude 会先了解该智能体需要什么，再编写一个小型包装脚本。然后运行该技能的探测测试。测试会逐一检验每道围栏：被隐藏的 <code>.env</code>、只读的 <code>.git</code>、被拒绝的主机和被清除的变量。它会为每项检查打印 PASS 或 FAIL，最后应显示 0 failed。</p></li>
+        <li><p>在 Claude Code 中请求一个沙箱，例如“sandbox opencode”或“put my agent CLI in a box”。对于 opencode、pi 和 prime-agent，Claude 会使用现成的包装脚本。对于其他智能体，Claude 会先了解该智能体需要什么，再编写一个小型包装脚本。在某个仓库中首次运行之前，它会检查是否有未提交的改动，以及 git 历史中是否含有机密信息，并告诉你检查结果。然后运行该技能的探测测试。测试会逐一检验每道围栏：被隐藏的 <code>.env</code>、只读的 <code>.git</code>、被拒绝的主机和被清除的变量。它会为每项检查打印 PASS 或 FAIL，最后应显示 0 failed。该测试表明沙箱遵守包装脚本的设置，并会拒绝访问 <code>~/.ssh</code> 等常见的凭据文件夹；包装脚本中的其他文件夹和主机是否可以安全共享，仍需由你自己判断。</p></li>
       </ol>
       <p>该技能自带现成的包装脚本：opencode-box、pi-box 和 prime-agent-box。该技能为 Claude Code 运行的其他智能体 CLI 提供沙箱。它不会把 Claude Code 本身放进沙箱，Claude Code 有自己的沙箱设置。</p>
     </section>

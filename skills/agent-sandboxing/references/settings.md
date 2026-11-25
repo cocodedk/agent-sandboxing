@@ -33,9 +33,12 @@ checks must run in the box. No package registry is reachable in any mode, so not
 | `BOX_ALL_SOCKETS` | srt's `allowAllUnixSockets`: empty decides from AppArmor (srt.md), `1` forces it on, `0` off |
 
 `agent_box_tools` fills `BOX_TOOLS` and `BOX_TOOLS_PATH` with node's folder, npm's global prefix and uv's python
-and tools folders, links resolved, leaving out any folder that is or holds one in `BOX_TOOLS_REFUSED` (the home,
-`~/.local`, `~/.local/share`, `~/.config`, `~/.cache`): those hold other tools' logins. probe.sh fails a
-`BOX_TOOLS` that holds one. Never add uv's own folder or any other that holds credentials.
+and tools folders, links resolved, leaving out any folder `agent_box_refused` refuses. It refuses a folder that is
+or holds one of the broad roots in `BOX_TOOLS_REFUSED` (the home, `~/.local`, `~/.local/share`, `~/.config`,
+`~/.cache`), and one that is, is inside or holds a credential folder in `BOX_CREDENTIALS` (`~/.ssh`, `~/.aws`,
+`~/.gnupg`, `~/.config/gh`, `~/.config/gcloud`, `~/.docker`, `~/.kube`, `~/.netrc`, `~/.git-credentials`,
+`~/.password-store`). probe.sh fails any folder in `BOX_READ`, `BOX_WRITE` or `BOX_TOOLS` it refuses. Any other
+folder added by hand is still the author's judgement: never add uv's own folder or any other that holds credentials.
 
 The user running the wrapper may set `AGENT_BOX_READ`: more read-only folders, colon-separated (a test venv kept
 elsewhere). A stray colon adds nothing.

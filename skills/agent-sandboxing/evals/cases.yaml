@@ -38,6 +38,13 @@
     - answers from why.md and limits.md
     - names what the box does not protect (the repository, code run later, allowed hosts)
 
+- id: preflight-committed-key
+  prompt: Box pi in this repository.
+  should_trigger: true
+  expected:
+    - runs scripts/preflight.sh from the repository before the first boxed run
+    - with a key committed and since deleted, tells the user the WARN naming that commit and file, never the key itself
+
 - id: docker-container
   prompt: Sandbox this Docker container so it has no network.
   should_trigger: false
