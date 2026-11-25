@@ -129,7 +129,7 @@
       <ul>
         <li>Fejl bliver inde i projektet.</li>
         <li>Hemmeligheder uden for sandkassen kan ikke læses eller lækkes.</li>
-        <li>En narret agent kan ikke nå en angribers server.</li>
+        <li>En narret agent kan ikke nå nogen vært uden for sin korte liste over tilladte værter, for eksempel en angribers egen server.</li>
         <li>Agenten kan ikke plante git-hooks eller udskifte værktøjer, der kører senere, fordi <code>.git</code> og værktøjsmapperne er skrivebeskyttede. Der kan stadig skrives i projektets egne filer, og i dets mapper med afhængigheder, når agenten kører builds, så gennemgå det, agenten skriver der. Efter hver kørsel viser sandkassen de filer, agenten har ændret i mapper med afhængigheder og andre steder, git ignorerer.</li>
         <li>Du kan lade en agent arbejde uden opsyn, og det værste, der kan ske, har en grænse.</li>
         <li>Det er billigt og hurtigt sammenlignet med en virtuel maskine eller et container-image, og hver agents regler er en kort liste, du kan læse.</li>
@@ -140,7 +140,7 @@
       <h2>Hvad en sandkasse ikke gør</h2>
       <ul>
         <li>Den deler kernen med resten af din computer (den centrale del af styresystemet), ligesom en container. En fejl i kernen kan lade en proces slippe ud. En virtuel maskine isolerer mere. Hold kernen opdateret.</li>
-        <li>De tilladte værter modtager stadig data. Alt, hvad der er inde i sandkassen, kan stadig sendes til de tilladte værter, for eksempel modeludbyderen. Det gælder også de nøgler, agenten har brug for.</li>
+        <li>De tilladte værter modtager stadig data. Alt, hvad der er inde i sandkassen, kan stadig sendes til de tilladte værter, for eksempel modeludbyderen. Det gælder også projektets kode og de nøgler, agenten har brug for. En angriber behøver ikke sin egen server: tekst, som agenten læser, kan få den til at sende filer til en tilladt vært med angriberens egen API-nøgle, så dataene havner på angriberens konto dér. Skjulte filer, som <code>.env</code>, kan agenten ikke nå.</li>
         <li>Kode, som agenten skriver, kører uden for sandkassen, så snart du kører den, pusher den eller installerer den. Gennemgå diffen først, sammen med de filer, den har ændret i mapper med afhængigheder (<code>node_modules</code>, <code>.venv</code>).</li>
         <li>Pakkeregistre er blokeret, så intet bliver installeret inde i sandkassen. Installér uden for sandkassen med de tjek, du plejer at lave.</li>
         <li>Projektmappen er ikke beskyttet. Agenten kan stadig ændre eller slette filer der, også arbejde, du ikke har committet. Commit eller stash først, eller giv agenten sit eget worktree (et separat checkout af repositoriet).</li>

@@ -129,7 +129,7 @@
       <ul>
         <li>Mistakes stay inside the project.</li>
         <li>Secrets outside the sandbox cannot be read or leaked.</li>
-        <li>A tricked agent cannot reach an attacker's server.</li>
+        <li>A tricked agent cannot reach any host outside its short allowed list, such as an attacker's own server.</li>
         <li>The agent cannot plant git hooks or swap tools that run later, because <code>.git</code> and the tool folders are read-only. The project's own files stay writable, and so do its dependency folders when the agent runs builds, so review what the agent writes there. After each run, the sandbox lists the files the agent changed in dependency folders and other git-ignored places.</li>
         <li>You can let an agent work unattended with a bounded worst case.</li>
         <li>It is cheap and fast next to a virtual machine or container image, and each agent's rules are a short list you can read.</li>
@@ -140,7 +140,7 @@
       <h2>What a sandbox does not do</h2>
       <ul>
         <li>It shares your computer's kernel (the core of the operating system), like a container. A kernel bug could let a process out. A virtual machine isolates more. Keep the kernel updated.</li>
-        <li>Allowed hosts still receive data. Whatever is inside the sandbox can still be sent to the allowed hosts, such as the model provider. That includes the keys the agent needs.</li>
+        <li>Allowed hosts still receive data. Whatever is inside the sandbox can still be sent to the allowed hosts, such as the model provider. That includes the project's code and the keys the agent needs. An attacker does not need a server of their own: text the agent reads can tell it to send files to an allowed host using the attacker's own API key, so the data lands in the attacker's account there. Hidden files, such as <code>.env</code>, stay out of reach.</li>
         <li>Code the agent writes runs outside the sandbox once you run it, push it or install it. Review the diff first, along with any files it changed in dependency folders (<code>node_modules</code>, <code>.venv</code>).</li>
         <li>Package registries are blocked, so nothing installs inside the sandbox. Install outside, with your usual checks.</li>
         <li>The project folder is not protected. The agent can still change or delete files there, including work you have not committed. Commit or stash first, or give the agent a separate worktree (a separate checkout of the repository).</li>

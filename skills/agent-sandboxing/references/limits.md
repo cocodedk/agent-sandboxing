@@ -12,7 +12,9 @@ work safe. Say these to the user when wiring a box in.
   lists both; read those files before the next run outside. A new nested git repository is the gap: the ignored
   files inside it are not listed.
 - **Allowed hosts.** Anything the agent reads can go to the hosts in `BOX_DOMAINS`: the repository's code, and every
-  key kept in `BOX_KEEP`, which a model could send to another allowed provider. Keep both lists short.
+  key kept in `BOX_KEEP`, which a model could send to another allowed provider. An attacker needs no server of their
+  own: injected text can have the agent send data to an allowed host under the attacker's own key, where it lands in
+  the attacker's account; a domain list cannot tell the two keys apart. Keep both lists short.
 - **The kernel.** bubblewrap uses Linux namespaces. A kernel bug can break out of them, and where AppArmor forces
   `allowAllUnixSockets`, srt's seccomp filter is off. Keep the kernel patched; it is not a VM.
 - **The agent's own folders.** What is writable in `BOX_WRITE` persists unless it is a copy thrown away; a

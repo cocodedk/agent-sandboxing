@@ -129,7 +129,7 @@
       <ul>
         <li>Los errores se quedan dentro del proyecto.</li>
         <li>Los secretos que están fuera del sandbox no se pueden leer ni filtrar.</li>
-        <li>Un agente engañado no puede llegar al servidor de un atacante.</li>
+        <li>Un agente engañado no puede llegar a ningún host fuera de su breve lista de hosts permitidos, como el servidor propio de un atacante.</li>
         <li>El agente no puede dejar hooks de git ni sustituir herramientas que se ejecuten después, porque <code>.git</code> y las carpetas de herramientas son de solo lectura. Los archivos del propio proyecto siguen teniendo permiso de escritura, y también sus carpetas de dependencias cuando el agente ejecuta builds, así que revisa lo que el agente escriba ahí. Después de cada ejecución, el sandbox lista los archivos que el agente cambió en carpetas de dependencias y en otros lugares ignorados por git.</li>
         <li>Puedes dejar que un agente trabaje sin supervisión, sabiendo que el peor caso está acotado.</li>
         <li>Es barato y rápido comparado con una máquina virtual o una imagen de contenedor, y las reglas de cada agente son una lista corta que puedes leer.</li>
@@ -140,7 +140,7 @@
       <h2>Qué no hace un sandbox</h2>
       <ul>
         <li>Comparte el kernel de tu computadora (el núcleo del sistema operativo), como un contenedor. Un bug del kernel podría dejar salir a un proceso. Una máquina virtual aísla más. Mantén el kernel actualizado.</li>
-        <li>Los hosts permitidos siguen recibiendo datos. Todo lo que hay dentro del sandbox todavía se puede enviar a los hosts permitidos, como el proveedor del modelo. Eso incluye las claves que necesita el agente.</li>
+        <li>Los hosts permitidos siguen recibiendo datos. Todo lo que hay dentro del sandbox todavía se puede enviar a los hosts permitidos, como el proveedor del modelo. Eso incluye el código del proyecto y las claves que necesita el agente. Un atacante no necesita un servidor propio: un texto que lea el agente puede indicarle que envíe archivos a un host permitido con la clave de API del propio atacante, y así los datos acaban en la cuenta del atacante en ese host. Los archivos ocultos, como <code>.env</code>, quedan fuera de su alcance.</li>
         <li>El código que escribe el agente se ejecuta fuera del sandbox en cuanto lo ejecutas, lo subes con push o lo instalas. Revisa antes el diff, junto con cualquier archivo que haya cambiado en carpetas de dependencias (<code>node_modules</code>, <code>.venv</code>).</li>
         <li>Los registros de paquetes están bloqueados, así que no se instala nada dentro del sandbox. Instala fuera, con tus comprobaciones habituales.</li>
         <li>La carpeta del proyecto no está protegida. El agente todavía puede cambiar o borrar archivos ahí, incluido trabajo del que no has hecho commit. Haz commit o stash antes, o dale al agente un worktree aparte (una copia de trabajo separada del repositorio).</li>

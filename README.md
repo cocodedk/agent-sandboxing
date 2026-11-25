@@ -62,7 +62,7 @@ The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box
 ## Limits
 
 - It shares your computer's kernel, like a container; a virtual machine isolates more.
-- Allowed hosts, such as the model provider, still receive whatever is inside the sandbox.
+- Allowed hosts, such as the model provider, still receive whatever is inside the sandbox, and a tricked agent can send it there under an attacker's own API key.
 - Code the agent writes runs outside the sandbox once you run, push or install it: review the diff first.
 - Package registries are blocked, so nothing installs inside the sandbox.
 - The project folder is not protected: commit or stash first, or use a separate worktree.
