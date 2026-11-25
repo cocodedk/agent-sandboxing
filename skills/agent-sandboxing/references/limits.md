@@ -15,6 +15,9 @@ work safe. Say these to the user when wiring a box in.
   key kept in `BOX_KEEP`, which a model could send to another allowed provider. An attacker needs no server of their
   own: injected text can have the agent send data to an allowed host under the attacker's own key, where it lands in
   the attacker's account; a domain list cannot tell the two keys apart. Keep both lists short.
+- **Git history.** `.git` is readable, so git works. Any secret ever committed, even if since deleted and git-ignored,
+  and any token in a remote URL in `.git/config`, can be read in the box and sent to an allowed host. Tell the user to
+  remove it from the history (for example `git filter-repo`) and rotate the key.
 - **The kernel.** bubblewrap uses Linux namespaces. A kernel bug can break out of them, and where AppArmor forces
   `allowAllUnixSockets`, srt's seccomp filter is off. Keep the kernel patched; it is not a VM.
 - **The agent's own folders.** What is writable in `BOX_WRITE` persists unless it is a copy thrown away; a

@@ -1,6 +1,7 @@
 # The box's settings
 
-A wrapper sources `scripts/agent-box.sh`, then sets these and calls `agent_box`. An unset value is empty.
+A wrapper sources `scripts/agent-box.sh`, then sets these and calls `agent_box`. An unset value is empty. Set the `BOX_*` values after sourcing `agent-box.sh`, because sourcing sets
+the defaults (`BOX_MODE=review` and the rest).
 
 ## Modes (`BOX_MODE`)
 
@@ -60,8 +61,8 @@ with srt.md open.
 
 ## What the box sees
 
-The system's `/usr` and `/etc`, the repository (its git-ignored files hidden) and the folders named above. Of
-`/tmp` only the repository, if it is there, the run's own folder and srt's own; a script in `/tmp` needs `BOX_READ`. The rest
+The system's `/usr` and `/etc`, the repository (its git-ignored files hidden in the working tree; `.git`, history included, readable)
+and the folders named above. Of `/tmp` only the repository, if it is there, the run's own folder and srt's own; a script in `/tmp` needs `BOX_READ`. The rest
 of the home is not there at all: `~/.ssh` gives "No such file or directory", not "Permission denied". `.git`,
 hooks included, is never writable.
 

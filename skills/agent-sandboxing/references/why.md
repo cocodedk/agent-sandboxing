@@ -11,7 +11,7 @@ the hosts the agent needs and the environment variables kept by name. Everything
 ## The dangers it closes
 
 - **Secrets.** Without a box the agent can read `.env` files, SSH and cloud keys, browser data and every other
-  tool's login in the home. In the box the repository's git-ignored files are hidden and the rest of the home is gone.
+  tool's login in the home. In the box the repository's git-ignored files are hidden (its git history stays readable: limits.md) and the rest of the home is gone.
 - **Sending data out.** Without a box the agent can send what it reads to any host. In the box it reaches only the
   hosts named for it, though those hosts can still carry data out (limits.md).
 - **Writes outside the task.** Without a box it can change shell start-up files, git hooks or other projects. In the

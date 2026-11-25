@@ -63,6 +63,7 @@ The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box
 
 - It shares your computer's kernel, like a container; a virtual machine isolates more.
 - Allowed hosts, such as the model provider, still receive whatever is inside the sandbox, and a tricked agent can send it there under an attacker's own API key.
+- Git history stays readable: a secret that was ever committed, or a token in a remote URL in `.git/config`, is still there; remove it from the history and replace the key before you run an agent.
 - Code the agent writes runs outside the sandbox once you run, push or install it: review the diff first.
 - Package registries are blocked, so nothing installs inside the sandbox.
 - The project folder is not protected: commit or stash first, or use a separate worktree.
