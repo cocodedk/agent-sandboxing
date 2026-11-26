@@ -56,7 +56,8 @@ Paths below are under this skill's folder (`<skill-dir>`), not the user's reposi
 - `evals/cases.yaml` — trigger and outcome cases for this skill; run them after changing the description.
 - `scripts/agent-box.sh` — the box. Sourced by every wrapper; read its header only when changing it.
 - `scripts/probe.sh` — proves a box in a throwaway repository. Run it; don't read it.
-- `scripts/preflight.sh` — read-only check of a repository for uncommitted work and secrets in its git history or
-  remote URLs; OK or WARN per line. Step 3. Run it; don't read it.
+- `scripts/preflight.sh` — read-only check of a repository for uncommitted work, a token in its git config and keys
+  anywhere in `.git`; OK or WARN per line. Step 3. Run it; don't read it.
+- `scripts/preflight_scan.py` — the scanner `preflight.sh` runs on every object in `.git` and the local git config.
 - `scripts/opencode-box`, `scripts/pi-box`, `scripts/prime-agent-box` — the three wrappers; run them as the
   agent itself, or copy one as a template. Each header says what is in its box.

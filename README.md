@@ -57,7 +57,7 @@ The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box
 - `scripts/agent-box.sh`: the box, sourced by each wrapper; turns an agent's list of hosts, folders and kept variables into srt's settings.
 - `scripts/opencode-box`, `scripts/pi-box`, `scripts/prime-agent-box`: the ready-made wrappers.
 - `scripts/probe.sh`: the probe test that tries each fence and prints PASS or FAIL per check.
-- `scripts/preflight.sh`: a read-only check of your repository before a boxed run; it warns about uncommitted work and secrets in the git history or a remote URL.
+- `scripts/preflight.sh`: a read-only check of your repository before a boxed run; it warns about uncommitted work, a token in the git config, and secrets anywhere in `.git`: the history, tags, staged files and objects no commit holds any more. `scripts/preflight_scan.py` does the scanning; it needs python3.
 - `evals/cases.yaml`: trigger and outcome cases for the skill.
 
 ## Limits
