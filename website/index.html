@@ -83,7 +83,7 @@
     <header class="article-head">
       <h1>Why sandbox AI coding agents</h1>
       <p class="lead">An AI coding agent is a program that lets a language model act on your computer. Examples are Claude Code, opencode, pi and prime-agent. An agent reads and edits files, runs commands and tests, installs packages and fetches web pages, all with your user account's permissions: anything you can do, it can do.</p>
-      <p>A sandbox is a fenced-off space for the agent. The agent runs as a normal program but sees only part of your computer: the project folder, the programs it needs and the few internet hosts it must reach.</p>
+      <p>A sandbox is a fenced-off space for the agent. The agent runs as a normal program but sees only part of your computer: the project folder, the programs it needs and, by default, the few internet hosts it must reach.</p>
       <p class="source"><a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">Source on GitHub</a></p>
     </header>
 
@@ -117,7 +117,7 @@
       <p>A sandbox sets three fences.</p>
       <ul>
         <li>Files: only the project folder, the system's programs and the agent's own folders (its program, settings and login) are visible. The rest of your home folder (keys, other projects, browser data) is not there. The project's git-ignored files, such as <code>.env</code> and local keys, are hidden from the working folder too. The project is writable when the agent edits code and read-only when it only reviews. Its <code>.git</code> folder is read-only, so the agent cannot commit or add hooks. The tools are read-only, so nothing can be swapped. Dependency folders (<code>node_modules</code>, <code>.venv</code>) are writable only when the agent runs builds; otherwise they are hidden. Settings the agent must write go into a throwaway copy. The ready-made wrappers leave out the agent's history from other projects.</li>
-        <li>Network: there is no direct internet. All traffic goes through a proxy (a gatekeeper program that forwards allowed connections) outside the sandbox that lets through only the hosts named for that agent, typically its model provider's API. Everything else is refused, even services on the same computer.</li>
+        <li>Network: there is no direct internet. All traffic goes through a proxy (a gatekeeper program that forwards allowed connections) outside the sandbox that lets through only the hosts named for that agent, typically its model provider's API. Everything else is refused, even services on the same computer. If you start an agent with <code>--internet</code>, it can reach any internet host; with <code>--network</code>, the devices on your local network, by address. Neither reaches services on your own computer, and the agent cannot turn either on itself.</li>
         <li>Environment variables: they are cleared except for the few you name, so keys in your shell do not leak in.</li>
       </ul>
       <p>Scratch folders inside the sandbox are thrown away when the agent exits.</p>
@@ -129,7 +129,7 @@
       <ul>
         <li>Mistakes stay inside the project.</li>
         <li>Secrets outside the sandbox cannot be read or leaked.</li>
-        <li>A tricked agent cannot reach any host outside its short allowed list, such as an attacker's own server.</li>
+        <li>A tricked agent cannot reach any host outside its short allowed list, such as an attacker's own server, unless you started it with <code>--internet</code> or <code>--network</code>.</li>
         <li>The agent cannot plant git hooks or swap tools that run later, because <code>.git</code> and the tool folders are read-only. The project's own files stay writable, and so do its dependency folders when the agent runs builds, so review what the agent writes there. After each run, the sandbox lists the files the agent changed in dependency folders and other git-ignored places.</li>
         <li>You can let an agent work unattended with a bounded worst case.</li>
         <li>It is cheap and fast next to a virtual machine or container image, and each agent's rules are a short list you can read.</li>
@@ -140,10 +140,10 @@
       <h2>What a sandbox does not do</h2>
       <ul>
         <li>It shares your computer's kernel (the core of the operating system), like a container. A kernel bug could let a process out. A virtual machine isolates more. Keep the kernel updated.</li>
-        <li>Allowed hosts still receive data. Whatever is inside the sandbox can still be sent to the allowed hosts, such as the model provider. That includes the project's code and the keys the agent needs. An attacker does not need a server of their own: text the agent reads can tell it to send files to an allowed host using the attacker's own API key, so the data lands in the attacker's account there. Hidden files, such as <code>.env</code>, stay out of reach.</li>
+        <li>Allowed hosts still receive data. Whatever is inside the sandbox can still be sent to the allowed hosts, such as the model provider. That includes the project's code and the keys the agent needs. An attacker does not need a server of their own: text the agent reads can tell it to send files to an allowed host using the attacker's own API key, so the data lands in the attacker's account there. Hidden files, such as <code>.env</code>, stay out of reach. With <code>--internet</code>, every host on the internet is an allowed host.</li>
         <li>Git history stays readable. The agent cannot write to <code>.git</code>, but it can read it, so a secret that was ever committed is still in the history, even after you delete it and add it to <code>.gitignore</code>. The same goes for a token written into a remote URL in <code>.git/config</code>. Remove such a secret from the history and replace the key before you run an agent. The skill's check finds such secrets in every commit, tag and staged file in <code>.git</code>, even in objects no commit holds any more, and tokens in the git config. It shows where they are, never their values. It does not read Git LFS files.</li>
         <li>Code the agent writes runs outside the sandbox once you run it, push it or install it. Review the diff first, along with any files it changed in dependency folders (<code>node_modules</code>, <code>.venv</code>).</li>
-        <li>Package registries are blocked, so nothing installs inside the sandbox. Install outside, with your usual checks.</li>
+        <li>Package registries are blocked unless you start the agent with <code>--internet</code>, so by default nothing installs inside the sandbox. Install outside, with your usual checks.</li>
         <li>The project folder is not protected. The agent can still change or delete files there, including work you have not committed. Commit or stash first, or give the agent a separate worktree (a separate checkout of the repository).</li>
         <li>On Ubuntu, which restricts unprivileged user namespaces through AppArmor, srt's extra system-call filter (seccomp) must be switched off for the sandbox to start. The agent-box script detects this and switches the filter off by itself. The file and network fences still apply.</li>
         <li>This project's scripts are for Linux only.</li>
@@ -153,11 +153,11 @@
     <section id="getting-started">
       <h2>Getting started</h2>
       <p>The agent-sandboxing skill teaches Claude Code to build a sandbox for your agent: <a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">https://github.com/cocodedk/agent-sandboxing</a></p>
-      <p>You need Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js and srt. The steps use Debian or Ubuntu.</p>
+      <p>You need Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, iproute2, Node.js and srt. The steps use Debian or Ubuntu.</p>
       <ol class="steps">
         <li>
           <p>Install the system tools:</p>
-          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3</code></pre></div>
+          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3 iproute2</code></pre></div>
           <p>The command finishes without errors.</p>
         </li>
         <li><p>Install Node.js from nodejs.org or your package manager, then run <code>npm --version</code>. It should print a version number.</p></li>

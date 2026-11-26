@@ -3,8 +3,10 @@
 # run from a git repository on Linux. The box holds the repository, the system's programs and the folders its caller
 # names, and no other folder of the home; the repository's git-ignored files (.env, keys, local data) are hidden. Its
 # network is the hosts its caller names, through srt's proxy outside the box: no other host and none of this machine's
-# services. Its environment is HOME, PATH, LANG, TERM, TMPDIR and the variables its caller keeps. Sourced, not run.
-# Needs git, python3, bwrap, and srt (npm install -g @anthropic-ai/sandbox-runtime) with socat and ripgrep.
+# services. A wrapper started with --internet widens it to any host outside the local network, with --network to the
+# local network's devices by address (agent_box_net_flag); never to this machine's own services. Its environment is
+# HOME, PATH, LANG, TERM, TMPDIR and the variables its caller keeps. Sourced, not run.
+# Needs git, python3, bwrap, ip, and srt (npm install -g @anthropic-ai/sandbox-runtime) with socat and ripgrep.
 
 # Set by the caller after sourcing this file, before agent_box:
 BOX_MODE=review   # review: the repository read-only; write: writable but its .git; build: that, plus BOX_TOOLS and
@@ -19,13 +21,16 @@ BOX_KEEP=()       # the environment variables passed in, by name, so no value is
 BOX_PATH=""       # the agent's own program folders, searched before the system's
 BOX_TERM=dumb     # the terminal the box tells the agent it has; an interactive command passes the real one
 BOX_SKILLS=()     # skill folders the agent loads, read-only (for example "$HOME/.claude/skills")
-# Build mode only: the home's programs the project's checks need, read-only. No package registry is reachable, so
-# nothing gets installed there. Fill them with agent_box_tools, which resolves links and refuses folders that hold
-# other tools' state (BOX_TOOLS_REFUSED); by hand, resolve with readlink -f and check with agent_box_refused.
-# Leave out a folder that holds credentials (uv's own folder does: name only its python and tools folders).
+# Build mode only: the home's programs the project's checks need, read-only. Without --internet no package registry
+# is reachable, so nothing gets installed there. Fill them with agent_box_tools, which resolves links and refuses
+# folders that hold other tools' state (BOX_TOOLS_REFUSED); by hand, resolve with readlink -f and check with
+# agent_box_refused. Leave out a folder holding credentials (uv's own does: name only its python and tools folders).
 BOX_TOOLS=()      # read-only folders
 BOX_TOOLS_PATH="" # colon-separated program folders, put before the rest of PATH
 BOX_ALL_SOCKETS="" # allowAllUnixSockets: empty decides from AppArmor (BOX_USERNS_GUARD); 1 forces it on, 0 off
+# Set by agent_box_net_flag from the words the wrapper was started with, never by hand or from the environment:
+BOX_INTERNET=""   # --internet: any host outside the local network
+BOX_LAN=""        # --network: the local network's devices, by address
 # AGENT_BOX_READ, set by whoever runs the agent: more read-only folders, colon-separated (a test venv elsewhere).
 # Set by agent_box:
 BOX_CHANGED=""    # the line naming the git-ignored files a writable run changed or made, for the caller to print
@@ -56,6 +61,21 @@ readonly BOX_TOOLS_REFUSED=("$HOME" "$HOME/.local" "$HOME/.local/share" "$HOME/.
 # Common credential folders and files of the home: no folder the box names may be one, be inside one or hold one.
 readonly BOX_CREDENTIALS=(.ssh .aws .gnupg .config/gh .config/gcloud .docker .kube .netrc .git-credentials
   .password-store)
+# With --network, only the box's own loopback skips srt's proxy (srt's NO_PROXY skips the private ranges too).
+readonly BOX_NO_PROXY="localhost,127.0.0.1,::1"
+BOX_NET_RUNNER="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/agent-box-net.mjs"   # srt with a wider network
+readonly BOX_NET_RUNNER
+
+# agent_box_net_flag <word>: true, and the box's network widened, when the word is --internet (any host outside the
+# local network: web pages, package registries, any API) or --network (the local network's devices, by address). A
+# wrapper passes it the words of its own command line, so only whoever starts the wrapper widens the box.
+agent_box_net_flag() {
+  case "$1" in
+    --internet) BOX_INTERNET=1 ;;
+    --network) BOX_LAN=1 ;;
+    *) return 1 ;;
+  esac
+}
 
 # agent_box_refused <folder>: true when the folder is, or holds, one in BOX_TOOLS_REFUSED, or is, is inside or holds
 # one in BOX_CREDENTIALS. Any other folder is the caller's judgement.
@@ -86,7 +106,7 @@ agent_box_tools() {
 
 # agent_box <command...>: the command in the box, in this directory.
 agent_box() {
-  local top git srt node run write="" path reads=() changed home=$HOME rc=0 p sockets
+  local top git srt node run write="" path reads=() changed home=$HOME rc=0 p sockets reach
   BOX_CHANGED="" BOX_CWD="" BOX_BEFORE=()
   top="$(git rev-parse --show-toplevel)" && git="$(git rev-parse --path-format=absolute --git-common-dir)" || return 2
   [[ "$HOME/" != "${top%/}/"* ]] || { echo "${0##*/}: $top holds the home; run it from a repository" >&2; return 2; }
@@ -100,6 +120,8 @@ agent_box() {
     *) echo "${0##*/}: BOX_MODE is review, write or build, not $BOX_MODE" >&2; return 2 ;;
   esac
   path="${BOX_PATH:+$BOX_PATH:}$BOX_SYSTEM_PATH"
+  if [ -n "$BOX_INTERNET" ] && [ -n "$BOX_LAN" ]; then reach=both
+  else reach="${BOX_INTERNET:+internet}${BOX_LAN:+network}"; fi
   if [ "$BOX_MODE" = build ]; then
     reads=(${BOX_TOOLS[@]+"${BOX_TOOLS[@]}"}) path="${BOX_TOOLS_PATH:+$BOX_TOOLS_PATH:}$path"
   fi
@@ -140,7 +162,10 @@ print(json.dumps({
     for p in $(compgen -e); do [[ " ${BOX_KEEP[*]-} " == *" $p "* ]] || unset "$p" 2> /dev/null || true; done
     while read -r _ _ p; do export -fn "$p"; done < <(declare -Fx)
     export HOME="$home" PATH="$path:${node%/*}" LANG=C.UTF-8 TERM="$BOX_TERM" TMPDIR="$run"
-    exec "$srt" -s "$run/settings.json" -- bash -c 'mkdir -p "$TMPDIR" && exec "$@"' agent-box "$@"
+    [ -n "$reach" ] || exec "$srt" -s "$run/settings.json" -- bash -c 'mkdir -p "$TMPDIR" && exec "$@"' agent-box "$@"
+    exec "$node" "$BOX_NET_RUNNER" "$(dirname "$(readlink -f "$srt")")" "$run/settings.json" "$reach" -- bash -c \
+      'mkdir -p "$TMPDIR" && { [ -z "$1" ] || export NO_PROXY="$1" no_proxy="$1"; } && shift && exec "$@"' \
+      agent-box "${BOX_LAN:+$BOX_NO_PROXY}" "$@"
   ) || rc=$?
   if [ -n "$write" ]; then   # no diff shows git-ignored files: list those the run changed in the shown dependency
     changed="$run.changed"   # folders (by ctime) and every ignored path it made; beside the run's folder, to outlive it

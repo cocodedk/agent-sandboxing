@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # opencode-box: opencode in the agent box (srt), run from a repository. The repository is writable but for its .git,
 # its git-ignored files (.env, keys) are hidden, no other folder of the home is there but opencode's own, no
-# environment variable is, and opencode's own hosts are the only network. Every argument goes to opencode:
-# opencode-box opens its screen, opencode-box run "..." runs one prompt. Ignored folders (node_modules, .venv, build
-# output) are empty in the box and what is written there is lost, and no package registry is reachable: it reads and
-# edits code, but most test suites cannot run in it. A git-ignored file the run makes stays, and is listed at the end. It runs on a copy of opencode's database holding only the login:
-# no other session is there, and its own is thrown away at the end. opencode-box --persist [...] keeps this
-# repository's sessions from one run to the next (--continue works), in a copy of its own under OC_BOX_SESSIONS; one
-# such run per repository at a time. Sourced (as probe.sh does), it only sets the box and returns.
+# environment variable is, and by default opencode's own hosts are the only network. Every other argument goes to
+# opencode: opencode-box opens its screen, opencode-box run "..." runs one prompt. Ignored folders (node_modules,
+# .venv, build output) are empty in the box and what is written there is lost, and without --internet no package
+# registry is reachable: it reads and edits code, but most test suites cannot run in it. A git-ignored file the run
+# makes stays, and is listed at the end. It runs on a copy of opencode's database holding only the login: no other
+# session is there, and its own is thrown away at the end. opencode-box --persist [...] keeps this repository's
+# sessions from one run to the next (--continue works), in a copy of its own under OC_BOX_SESSIONS; one such run per
+# repository at a time. opencode-box --internet [...] adds every host outside the local network, --network [...] the
+# local network's devices by address (agent-box.sh), and with --internet its login can be sent to any host; --persist,
+# --internet and --network come first, in any order. Sourced (as probe.sh does), it only sets the box and returns.
 set -euo pipefail
 # shellcheck source=agent-box.sh
 source "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/agent-box.sh"
@@ -66,11 +69,13 @@ kept or d.execute("vacuum")' "$src" "$dir/opencode.db" "${OC_DB_KEEP[@]}" \
 
 OC_LOGIN=""
 persist=""
-if [ "${1:-}" = "$OC_PERSIST" ]; then
+while [ $# -gt 0 ]; do
+  if [ "$1" = "$OC_PERSIST" ]; then
+    top="$(git rev-parse --show-toplevel)"
+    persist="$OC_BOX_SESSIONS/${top##*/}-$(printf '%s' "$top" | sha256sum | cut -c1-"$OC_HASH_CHARS")"
+  elif ! agent_box_net_flag "$1"; then break; fi
   shift
-  top="$(git rev-parse --show-toplevel)"
-  persist="$OC_BOX_SESSIONS/${top##*/}-$(printf '%s' "$top" | sha256sum | cut -c1-"$OC_HASH_CHARS")"
-fi
+done
 trap 'agent_box_sweep; [ -z "$OC_LOGIN" ] || rm -rf "$OC_LOGIN"' EXIT   # srt's placeholders, if the terminal closes
 trap 'exit 129' HUP INT TERM
 

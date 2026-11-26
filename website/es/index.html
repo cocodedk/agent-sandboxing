@@ -83,7 +83,7 @@
     <header class="article-head">
       <h1>Por qué usar un sandbox con agentes de programación con IA</h1>
       <p class="lead">Un agente de programación con IA es un programa que permite que un modelo de lenguaje actúe en tu computadora. Algunos ejemplos son Claude Code, opencode, pi y prime-agent. Un agente lee y edita archivos, ejecuta comandos y pruebas, instala paquetes y descarga páginas web, todo con los permisos de tu cuenta de usuario: todo lo que tú puedes hacer, él también puede hacerlo.</p>
-      <p>Un sandbox es un espacio cercado para el agente. El agente se ejecuta como un programa normal, pero solo ve una parte de tu computadora: la carpeta del proyecto, los programas que necesita y los pocos hosts de internet a los que debe llegar.</p>
+      <p>Un sandbox es un espacio cercado para el agente. El agente se ejecuta como un programa normal, pero solo ve una parte de tu computadora: la carpeta del proyecto, los programas que necesita y, por defecto, los pocos hosts de internet a los que debe llegar.</p>
       <p class="source"><a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">Código fuente en GitHub</a></p>
     </header>
 
@@ -117,7 +117,7 @@
       <p>Un sandbox pone tres barreras.</p>
       <ul>
         <li>Archivos: solo son visibles la carpeta del proyecto, los programas del sistema y las carpetas propias del agente (su programa, su configuración y su inicio de sesión). El resto de tu carpeta personal (claves, otros proyectos, datos del navegador) no está ahí. Los archivos del proyecto ignorados por git, como <code>.env</code> y las claves locales, también quedan ocultos en la carpeta de trabajo. El proyecto tiene permiso de escritura cuando el agente edita código y es de solo lectura cuando solo revisa. Su carpeta <code>.git</code> es de solo lectura, así que el agente no puede hacer commits ni añadir hooks. Las herramientas son de solo lectura, así que no se puede sustituir nada. Las carpetas de dependencias (<code>node_modules</code>, <code>.venv</code>) tienen permiso de escritura solo cuando el agente ejecuta builds; si no, quedan ocultas. La configuración que el agente debe escribir va a una copia desechable. Los wrappers listos para usar dejan fuera el historial del agente de otros proyectos.</li>
-        <li>Red: no hay acceso directo a internet. Todo el tráfico pasa por un proxy (un programa guardián que reenvía las conexiones permitidas) fuera del sandbox, que solo deja pasar los hosts indicados para ese agente, normalmente la API de su proveedor de modelos. Todo lo demás se rechaza, incluso los servicios de la misma computadora.</li>
+        <li>Red: no hay acceso directo a internet. Todo el tráfico pasa por un proxy (un programa guardián que reenvía las conexiones permitidas) fuera del sandbox, que solo deja pasar los hosts indicados para ese agente, normalmente la API de su proveedor de modelos. Todo lo demás se rechaza, incluso los servicios de la misma computadora. Si inicias un agente con <code>--internet</code>, puede llegar a cualquier host de internet; con <code>--network</code>, a los dispositivos de tu red local, por su dirección. Ninguna de las dos opciones llega a los servicios de tu propia computadora, y el agente no puede activarlas por sí mismo.</li>
         <li>Variables de entorno: se borran todas salvo las pocas que indiques, así que las claves de tu shell no llegan al sandbox.</li>
       </ul>
       <p>Las carpetas temporales dentro del sandbox se descartan cuando el agente termina.</p>
@@ -129,7 +129,7 @@
       <ul>
         <li>Los errores se quedan dentro del proyecto.</li>
         <li>Los secretos que están fuera del sandbox no se pueden leer ni filtrar.</li>
-        <li>Un agente engañado no puede llegar a ningún host fuera de su breve lista de hosts permitidos, como el servidor propio de un atacante.</li>
+        <li>Un agente engañado no puede llegar a ningún host fuera de su breve lista de hosts permitidos, como el servidor propio de un atacante, salvo que lo hayas iniciado con <code>--internet</code> o <code>--network</code>.</li>
         <li>El agente no puede dejar hooks de git ni sustituir herramientas que se ejecuten después, porque <code>.git</code> y las carpetas de herramientas son de solo lectura. Los archivos del propio proyecto siguen teniendo permiso de escritura, y también sus carpetas de dependencias cuando el agente ejecuta builds, así que revisa lo que el agente escriba ahí. Después de cada ejecución, el sandbox lista los archivos que el agente cambió en carpetas de dependencias y en otros lugares ignorados por git.</li>
         <li>Puedes dejar que un agente trabaje sin supervisión, sabiendo que el peor caso está acotado.</li>
         <li>Es barato y rápido comparado con una máquina virtual o una imagen de contenedor, y las reglas de cada agente son una lista corta que puedes leer.</li>
@@ -140,10 +140,10 @@
       <h2>Qué no hace un sandbox</h2>
       <ul>
         <li>Comparte el kernel de tu computadora (el núcleo del sistema operativo), como un contenedor. Un bug del kernel podría dejar salir a un proceso. Una máquina virtual aísla más. Mantén el kernel actualizado.</li>
-        <li>Los hosts permitidos siguen recibiendo datos. Todo lo que hay dentro del sandbox todavía se puede enviar a los hosts permitidos, como el proveedor del modelo. Eso incluye el código del proyecto y las claves que necesita el agente. Un atacante no necesita un servidor propio: un texto que lea el agente puede indicarle que envíe archivos a un host permitido con la clave de API del propio atacante, y así los datos acaban en la cuenta del atacante en ese host. Los archivos ocultos, como <code>.env</code>, quedan fuera de su alcance.</li>
+        <li>Los hosts permitidos siguen recibiendo datos. Todo lo que hay dentro del sandbox todavía se puede enviar a los hosts permitidos, como el proveedor del modelo. Eso incluye el código del proyecto y las claves que necesita el agente. Un atacante no necesita un servidor propio: un texto que lea el agente puede indicarle que envíe archivos a un host permitido con la clave de API del propio atacante, y así los datos acaban en la cuenta del atacante en ese host. Los archivos ocultos, como <code>.env</code>, quedan fuera de su alcance. Con <code>--internet</code>, todos los hosts de internet están permitidos.</li>
         <li>El historial de git sigue siendo legible. El agente no puede escribir en <code>.git</code>, pero sí puede leerlo, así que un secreto del que alguna vez se hizo commit sigue en el historial, aunque lo borres y lo añadas a <code>.gitignore</code>. Lo mismo pasa con un token escrito en la URL de un remoto en <code>.git/config</code>. Elimina ese secreto del historial y cambia la clave antes de ejecutar un agente. La comprobación de la skill encuentra esos secretos en cada commit, tag y archivo preparado (staged) de <code>.git</code>, incluso en objetos que ya no pertenecen a ningún commit, y los tokens de la configuración de git. Muestra dónde están, nunca su valor. No lee los archivos de Git LFS.</li>
         <li>El código que escribe el agente se ejecuta fuera del sandbox en cuanto lo ejecutas, lo subes con push o lo instalas. Revisa antes el diff, junto con cualquier archivo que haya cambiado en carpetas de dependencias (<code>node_modules</code>, <code>.venv</code>).</li>
-        <li>Los registros de paquetes están bloqueados, así que no se instala nada dentro del sandbox. Instala fuera, con tus comprobaciones habituales.</li>
+        <li>Los registros de paquetes están bloqueados salvo que inicies el agente con <code>--internet</code>, así que por defecto no se instala nada dentro del sandbox. Instala fuera, con tus comprobaciones habituales.</li>
         <li>La carpeta del proyecto no está protegida. El agente todavía puede cambiar o borrar archivos ahí, incluido trabajo del que no has hecho commit. Haz commit o stash antes, o dale al agente un worktree aparte (una copia de trabajo separada del repositorio).</li>
         <li>En Ubuntu, que restringe los user namespaces sin privilegios mediante AppArmor, hay que desactivar el filtro adicional de llamadas al sistema de srt (seccomp) para que el sandbox arranque. El script agent-box lo detecta y desactiva el filtro por sí solo. Las barreras de archivos y de red siguen aplicándose.</li>
         <li>Los scripts de este proyecto son solo para Linux.</li>
@@ -153,11 +153,11 @@
     <section id="getting-started">
       <h2>Primeros pasos</h2>
       <p>La skill agent-sandboxing le enseña a Claude Code a construir un sandbox para tu agente: <a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">https://github.com/cocodedk/agent-sandboxing</a></p>
-      <p>Necesitas Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js y srt. Los pasos usan Debian o Ubuntu.</p>
+      <p>Necesitas Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, iproute2, Node.js y srt. Los pasos usan Debian o Ubuntu.</p>
       <ol class="steps">
         <li>
           <p>Instala las herramientas del sistema:</p>
-          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3</code></pre></div>
+          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3 iproute2</code></pre></div>
           <p>El comando termina sin errores.</p>
         </li>
         <li><p>Instala Node.js desde nodejs.org o con tu gestor de paquetes y luego ejecuta <code>npm --version</code>. Debería mostrar un número de versión.</p></li>

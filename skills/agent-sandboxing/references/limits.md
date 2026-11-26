@@ -14,7 +14,10 @@ work safe. Say these to the user when wiring a box in.
 - **Allowed hosts.** Anything the agent reads can go to the hosts in `BOX_DOMAINS`: the repository's code, and every
   key kept in `BOX_KEEP`, which a model could send to another allowed provider. An attacker needs no server of their
   own: injected text can have the agent send data to an allowed host under the attacker's own key, where it lands in
-  the attacker's account; a domain list cannot tell the two keys apart. Keep both lists short.
+  the attacker's account; a domain list cannot tell the two keys apart. Keep both lists short. With `--internet` the list is every host outside the local network: every key
+  in the box can go anywhere, and an install skips any package firewall that checks packages outside the box. With
+  `--network` the agent reaches any device on the local network that answers by address (a router's admin page, a
+  printer, a NAS). Pass either only when the user asked for it.
 - **Git history.** `.git` is readable, so git works. Any secret ever committed, even if since deleted and git-ignored,
   and any token in a remote URL in `.git/config`, can be read in the box and sent to an allowed host. Tell the user to
   remove it from the history (for example `git filter-repo`) and rotate the key. `scripts/preflight.sh` finds both, and keys in tags, staged files and objects no commit holds; it does not find a key in a Git LFS file, in a pack file with no index, in another worktree's `config.worktree`, or only in a file name.

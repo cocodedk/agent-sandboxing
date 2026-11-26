@@ -1,6 +1,6 @@
 # agent-sandboxing
 
-A Claude Code skill that runs other AI coding agent CLIs (opencode, pi, prime-agent and others) in a sandbox, plus a page that explains why and how. The sandbox shows the agent only the project folder, the programs it needs and the few internet hosts it must reach, and clears every environment variable you did not name. It is built on Anthropic's sandbox-runtime (srt) and runs on Linux.
+A Claude Code skill that runs other AI coding agent CLIs (opencode, pi, prime-agent and others) in a sandbox, plus a page that explains why and how. The sandbox shows the agent only the project folder, the programs it needs and, by default, the few internet hosts it must reach, and clears every environment variable you did not name. It is built on Anthropic's sandbox-runtime (srt) and runs on Linux.
 
 ## Website
 
@@ -15,12 +15,12 @@ The skill itself is written in English.
 
 ## Install
 
-You need Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js and srt. The steps use Debian or Ubuntu.
+You need Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, iproute2, Node.js and srt. The steps use Debian or Ubuntu.
 
 1. Install the system tools:
 
    ```
-   sudo apt install bubblewrap socat ripgrep git python3
+   sudo apt install bubblewrap socat ripgrep git python3 iproute2
    ```
 
    The command finishes without errors.
@@ -50,12 +50,15 @@ You need Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js a
 
 The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box. The skill sandboxes other agent CLIs that Claude Code runs. It does not sandbox Claude Code itself, which has its own sandbox settings.
 
+By default the sandbox reaches only the agent's own hosts. To let an agent reach more, start its wrapper with `--internet` (any host outside your local network: web pages, package registries, any API) or `--network` (the devices on your local network, by address), for example `pi-box --internet`. Neither reaches services on your own computer, and an agent in the sandbox cannot turn either on or start a sandbox with more. With `--internet`, every key in the sandbox can be sent to any host.
+
 ## What is in `skills/agent-sandboxing`
 
 - `SKILL.md`: what Claude Code does when you ask for a sandbox.
 - `references/`: why sandbox, how srt works, the settings, the ready-made agents, how to survey a new agent, and the limits.
 - `scripts/agent-box.sh`: the box, sourced by each wrapper; turns an agent's list of hosts, folders and kept variables into srt's settings.
 - `scripts/opencode-box`, `scripts/pi-box`, `scripts/prime-agent-box`: the ready-made wrappers.
+- `scripts/agent-box-net.mjs`: runs srt with the wider network that `--internet` and `--network` ask for.
 - `scripts/probe.sh`: the probe test that tries each fence and prints PASS or FAIL per check.
 - `scripts/preflight.sh`: a read-only check of your repository before a boxed run; it warns about uncommitted work, a token in the git config, and secrets in any object in `.git`: the history, tags, staged files and objects no commit holds any more. `scripts/preflight_scan.py` does the scanning; it needs python3.
 - `evals/cases.yaml`: trigger and outcome cases for the skill.
@@ -63,10 +66,10 @@ The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box
 ## Limits
 
 - It shares your computer's kernel, like a container; a virtual machine isolates more.
-- Allowed hosts, such as the model provider, still receive whatever is inside the sandbox, and a tricked agent can send it there under an attacker's own API key.
+- Allowed hosts, such as the model provider, still receive whatever is inside the sandbox, and a tricked agent can send it there under an attacker's own API key. With `--internet`, that is any host.
 - Git history stays readable: a secret that was ever committed, or a token in a remote URL in `.git/config`, is still there; remove it from the history and replace the key before you run an agent. `scripts/preflight.sh` finds such secrets in every commit, tag and staged file, even in objects no commit holds any more, and shows where they are, never their values; it does not read Git LFS files.
 - Code the agent writes runs outside the sandbox once you run, push or install it: review the diff first.
-- Package registries are blocked, so nothing installs inside the sandbox.
+- Package registries are blocked unless you start the wrapper with `--internet`, so by default nothing installs inside the sandbox.
 - The project folder is not protected: commit or stash first, or use a separate worktree.
 - On Ubuntu, srt's extra system-call filter (seccomp) is switched off so the sandbox can start.
 - Linux only.

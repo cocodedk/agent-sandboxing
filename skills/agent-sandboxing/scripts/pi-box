@@ -2,10 +2,12 @@
 # pi-box: pi in the agent box, run from a repository. The repository is writable but for its .git; its git-ignored
 # files are hidden but for the dependency folders (node_modules, .venv, venv); the home's programs (node, npm, uv's
 # python and tools) are there read-only, and no other folder of the home is. The network is pi's providers (PI_HOSTS)
-# and nothing else: no package registry, no web page. pi runs on a copy of its config folder, thrown away at the end
-# with its sessions (no resume) and any change to its settings; its MCP servers (mcp.json) stay out. Every provider's
-# key in PI_KEYS is in the box, and the model could send one to another provider in PI_HOSTS. Every argument goes to
-# pi: pi-box opens its screen, pi-box -p "..." runs one prompt. The copy goes on any exit but a SIGKILL, which leaves
+# and nothing else: no package registry, no web page; pi-box --internet [...] adds every host outside the local
+# network, pi-box --network [...] the local network's devices by address (agent-box.sh). pi runs on a copy of its
+# config folder, thrown away at the end with its sessions (no resume) and any change to its settings; its MCP servers
+# (mcp.json) stay out. Every provider's key in PI_KEYS is in the box, and the model could send one to another provider
+# in PI_HOSTS (with --internet, to any host). Every other argument goes to pi: pi-box opens its screen, pi-box -p "..."
+# runs one prompt. The copy goes on any exit but a SIGKILL, which leaves
 # it in the temporary folder (mode 700). Sourced (as probe.sh does), it only sets the box and returns.
 set -euo pipefail
 # shellcheck source=agent-box.sh
@@ -25,6 +27,7 @@ BOX_PATH="$PI_AGENT/bin"
 BOX_KEEP=(PI_CODING_AGENT_DIR "${PI_KEYS[@]}")
 agent_box_tools
 if (return 0 2> /dev/null); then return 0; fi
+while [ $# -gt 0 ] && agent_box_net_flag "$1"; do shift; done   # --internet, --network: before pi's own words
 
 # pi writes its config folder as it runs (a lock beside trust.json), so it gets a copy: mode 700, as it holds the keys.
 PI_CODING_AGENT_DIR="$(mktemp -d)"

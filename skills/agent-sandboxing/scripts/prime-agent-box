@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # prime-agent-box: prime-agent in the agent box, run from a repository. The repository is writable but for its .git;
 # its git-ignored files are hidden but for the dependency folders (node_modules, .venv, venv); the home's programs
-# (node, npm, uv's python and tools) are there read-only, and no other folder of the home is. The network is OpenRouter
-# and Anthropic and nothing else: no package registry, no web page. Its config folder is there read-only and its keys
-# folder (the web search key) hidden, so it saves no session: run it with --no-session. One-shot only (-p): the
-# interactive screen needs a daemon that cannot start in the box. Of its config folder only PRIME_SHOWN is there; the
-# rest (sessions, logs, journals and telemetry of every project, and anything it adds later) is hidden. Every argument goes to prime-agent. Sourced (as probe.sh does), it only sets the box and returns.
+# (node, npm, uv's python and tools) are there read-only, and no other folder of the home is. The network is
+# OpenRouter and Anthropic and nothing else: no package registry, no web page; prime-agent-box --internet [...] adds
+# every host outside the local network (its keys can then be sent to any host), --network [...] the local network's
+# devices by address (agent-box.sh). Its config folder is there read-only and its keys folder (the web search key)
+# hidden, so it saves no session: run it with --no-session. One-shot only (-p): the interactive screen needs a daemon
+# that cannot start in the box. Of its config folder only PRIME_SHOWN is there; the rest (sessions, logs, journals and
+# telemetry of every project, and anything it adds later) is hidden. Every other argument goes to prime-agent. Sourced
+# (as probe.sh does), it only sets the box and returns.
 set -euo pipefail
 # shellcheck source=agent-box.sh
 source "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/agent-box.sh"
@@ -35,6 +38,7 @@ export PRIME_AGENT_KERNEL_PYTHON="$PRIME_CONFIG/kernel-venv/bin/python"
 BOX_KEEP=(OPENROUTER_API_KEY PRIME_AGENT_KERNEL_PYTHON)   # the OpenRouter key: its auth.json holds Anthropic's only
 agent_box_tools
 if (return 0 2> /dev/null); then return 0; fi
+while [ $# -gt 0 ] && agent_box_net_flag "$1"; do shift; done   # --internet, --network: before prime-agent's own words
 
 trap agent_box_sweep EXIT
 trap 'exit 129' HUP INT TERM

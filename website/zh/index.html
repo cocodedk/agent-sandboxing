@@ -83,7 +83,7 @@
     <header class="article-head">
       <h1>为什么要把 AI 编程智能体放进沙箱</h1>
       <p class="lead">AI 编程智能体是一种让语言模型在你的电脑上执行操作的程序，例如 Claude Code、opencode、pi 和 prime-agent。智能体会读取和编辑文件、运行命令和测试、安装软件包、抓取网页，而这一切都使用你的用户账户权限：凡是你能做的，它都能做。</p>
-      <p>沙箱是为智能体隔出来的一块空间。智能体像普通程序一样运行，但只能看到你电脑的一部分：项目文件夹、它需要的程序，以及它必须访问的少数几个互联网主机。</p>
+      <p>沙箱是为智能体隔出来的一块空间。智能体像普通程序一样运行，但只能看到你电脑的一部分：项目文件夹、它需要的程序，以及（默认情况下）它必须访问的少数几个互联网主机。</p>
       <p class="source"><a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">GitHub 上的源码</a></p>
     </header>
 
@@ -117,7 +117,7 @@
       <p>沙箱设置了三道围栏。</p>
       <ul>
         <li>文件：只有项目文件夹、系统程序以及智能体自己的文件夹（它的程序、设置和登录信息）可见。主目录的其余部分（密钥、其他项目、浏览器数据）在沙箱里看不到。项目中被 git 忽略的文件（例如 <code>.env</code> 和本地密钥）也会在工作文件夹中被隐藏。智能体编辑代码时项目可写，只做审查时项目只读。项目的 <code>.git</code> 文件夹只读，因此智能体无法提交，也无法添加 hook。工具只读，因此任何东西都无法被替换。依赖文件夹（<code>node_modules</code>、<code>.venv</code>）只有在智能体运行构建时才可写，否则会被隐藏。智能体必须写入的设置会放进一份用完即弃的副本。现成的包装脚本不会带入智能体在其他项目中的历史记录。</li>
-        <li>网络：没有直连互联网。所有流量都经过沙箱外的一个代理（一个负责转发已放行连接的守门程序），它只放行为该智能体指定的主机，通常是其模型提供商的 API。其他一切都会被拒绝，即使是同一台电脑上的服务。</li>
+        <li>网络：没有直连互联网。所有流量都经过沙箱外的一个代理（一个负责转发已放行连接的守门程序），它只放行为该智能体指定的主机，通常是其模型提供商的 API。其他一切都会被拒绝，即使是同一台电脑上的服务。如果你用 <code>--internet</code> 启动智能体，它可以访问互联网上的任何主机；用 <code>--network</code> 启动，则可以按地址访问你本地网络中的设备。两者都无法访问你自己电脑上的服务，智能体也无法自行开启它们。</li>
         <li>环境变量：除你指定的少数几个外全部清除，因此你 shell 中的密钥不会泄露进来。</li>
       </ul>
       <p>沙箱内的临时文件夹会在智能体退出时被删除。</p>
@@ -129,7 +129,7 @@
       <ul>
         <li>误操作被限制在项目之内。</li>
         <li>沙箱外的密钥既无法被读取，也无法被泄露。</li>
-        <li>被诱骗的智能体无法访问其简短允许列表之外的任何主机，例如攻击者自己的服务器。</li>
+        <li>被诱骗的智能体无法访问其简短允许列表之外的任何主机，例如攻击者自己的服务器，除非你用 <code>--internet</code> 或 <code>--network</code> 启动了它。</li>
         <li>智能体无法埋下 git hook 或替换事后运行的工具，因为 <code>.git</code> 和工具文件夹是只读的。项目自身的文件仍然可写，智能体运行构建时依赖文件夹也可写，所以请审查智能体在其中写入的内容。每次运行后，沙箱会列出智能体在依赖文件夹和其他被 git 忽略的位置中改动的文件。</li>
         <li>你可以让智能体在无人值守的情况下工作，而最坏情况是有边界的。</li>
         <li>与虚拟机或容器镜像相比，它成本低、速度快，而且每个智能体的规则都是一份你能读懂的简短列表。</li>
@@ -140,10 +140,10 @@
       <h2>沙箱做不到什么</h2>
       <ul>
         <li>它和容器一样，与你的电脑共享内核（操作系统的核心）。内核漏洞可能让进程逃逸出去。虚拟机的隔离程度更高。请保持内核为最新版本。</li>
-        <li>被允许的主机仍会收到数据。沙箱内的任何内容仍然可以发送到被允许的主机，例如模型提供商。其中包括项目的代码和智能体所需的密钥。攻击者不需要自己的服务器：智能体读到的文本可以让它使用攻击者自己的 API 密钥把文件发送到被允许的主机，数据就会落入攻击者在该主机上的账户。被隐藏的文件（例如 <code>.env</code>）仍然无法访问。</li>
+        <li>被允许的主机仍会收到数据。沙箱内的任何内容仍然可以发送到被允许的主机，例如模型提供商。其中包括项目的代码和智能体所需的密钥。攻击者不需要自己的服务器：智能体读到的文本可以让它使用攻击者自己的 API 密钥把文件发送到被允许的主机，数据就会落入攻击者在该主机上的账户。被隐藏的文件（例如 <code>.env</code>）仍然无法访问。使用 <code>--internet</code> 时，互联网上的所有主机都是被允许的主机。</li>
         <li>Git 历史仍然可读。智能体无法写入 <code>.git</code>，但可以读取它，因此任何曾经提交过的密钥都仍留在历史中，即使你已删除它并把它加入 <code>.gitignore</code>。写在 <code>.git/config</code> 远程 URL 中的令牌也是如此。运行智能体之前，请先把这类密钥从历史中移除，并更换密钥。该技能的检查会在 <code>.git</code> 的每个提交、标签和暂存文件中查找这类密钥，包括已不属于任何提交的对象，也会检查 git 配置中的令牌。它只显示位置，从不显示密钥本身。它不读取 Git LFS 文件。</li>
         <li>智能体写的代码一旦被你运行、推送或安装，就会在沙箱之外运行。请先审查 diff，以及它在依赖文件夹（<code>node_modules</code>、<code>.venv</code>）中改动的所有文件。</li>
-        <li>软件包仓库被屏蔽，因此沙箱内无法安装任何东西。请在沙箱外安装，并照常做检查。</li>
+        <li>软件包仓库默认被屏蔽，除非你用 <code>--internet</code> 启动智能体，因此默认情况下沙箱内无法安装任何东西。请在沙箱外安装，并照常做检查。</li>
         <li>项目文件夹不受保护。智能体仍然可以修改或删除其中的文件，包括你尚未提交的工作。请先提交或 stash，或者给智能体一个单独的 worktree（仓库的一个单独检出）。</li>
         <li>在通过 AppArmor 限制非特权用户命名空间的 Ubuntu 上，必须关闭 srt 额外的系统调用过滤（seccomp），沙箱才能启动。agent-box 脚本会检测到这种情况并自动关闭该过滤。文件和网络围栏仍然有效。</li>
         <li>本项目的脚本仅适用于 Linux。</li>
@@ -153,11 +153,11 @@
     <section id="getting-started">
       <h2>快速上手</h2>
       <p>agent-sandboxing 技能会教 Claude Code 为你的智能体搭建沙箱：<a href="https://github.com/cocodedk/agent-sandboxing" rel="noreferrer">https://github.com/cocodedk/agent-sandboxing</a></p>
-      <p>你需要 Linux、Claude Code、bubblewrap、socat、ripgrep、git、python3、Node.js 和 srt。以下步骤以 Debian 或 Ubuntu 为例。</p>
+      <p>你需要 Linux、Claude Code、bubblewrap、socat、ripgrep、git、python3、iproute2、Node.js 和 srt。以下步骤以 Debian 或 Ubuntu 为例。</p>
       <ol class="steps">
         <li>
           <p>安装系统工具：</p>
-          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3</code></pre></div>
+          <div class="code"><pre><code class="language-text">sudo apt install bubblewrap socat ripgrep git python3 iproute2</code></pre></div>
           <p>命令执行完毕且没有报错。</p>
         </li>
         <li><p>从 nodejs.org 或你的包管理器安装 Node.js，然后运行 <code>npm --version</code>。它应当打印出一个版本号。</p></li>

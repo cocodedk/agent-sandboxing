@@ -1,7 +1,7 @@
 ---
 name: agent-sandboxing
 description: Boxes an agent CLI (opencode, pi, prime-agent or another) in srt, with only the repository and the folders, hosts and variables it needs, its git-ignored secrets hidden. Use to sandbox or box an agent CLI, change a box, or fix a boxed run missing a file, host or variable. Not for containers, VMs or Claude Code's own sandbox settings (update-config).
-compatibility: Linux with bubblewrap (bwrap), socat, ripgrep, git, python3 (standard library), Node.js, and srt (npm install -g @anthropic-ai/sandbox-runtime).
+compatibility: Linux with bubblewrap (bwrap), socat, ripgrep, git, python3 (standard library), iproute2 (ip), Node.js, and srt (npm install -g @anthropic-ai/sandbox-runtime).
 ---
 
 # agent-sandboxing
@@ -9,13 +9,13 @@ compatibility: Linux with bubblewrap (bwrap), socat, ripgrep, git, python3 (stan
 The box is `scripts/agent-box.sh`, sourced, not run. A wrapper sources it, sets the agent's `BOX_*` values and
 calls `agent_box <agent> <args...>` from inside a git repository. The box then holds that repository, the system's
 programs and the folders the wrapper names; nothing else of the home, no git-ignored file, no host but the agent's
-own, and no environment variable but the ones kept by name. Why that matters, for telling the user: why.md.
+own (unless the user starts the wrapper with `--internet` or `--network`), and no environment variable but the ones kept by name. Why that matters, for telling the user: why.md.
 
 Paths below are under this skill's folder (`<skill-dir>`), not the user's repository.
 
 ## Workflow
 
-1. **Check requirements.** `for c in bwrap socat rg git python3 node srt; do command -v "$c" > /dev/null || echo "missing: $c"; done`
+1. **Check requirements.** `for c in bwrap socat rg git python3 ip node srt; do command -v "$c" > /dev/null || echo "missing: $c"; done`
    prints nothing when all are there; a missing srt is `npm install -g @anthropic-ai/sandbox-runtime`. Then run
    `bash <skill-dir>/scripts/probe.sh`; it makes its own throwaway repository. Every line PASS means srt works here.
    A FAIL names its check; srt.md explains most of them.
@@ -31,6 +31,8 @@ Paths below are under this skill's folder (`<skill-dir>`), not the user's reposi
    - a config the agent writes is a `mktemp -d` copy, removed in the EXIT trap;
    - `trap '<cleanup>; agent_box_sweep' EXIT` and `trap 'exit 129' HUP INT TERM` in every writable mode;
    - `if (return 0 2> /dev/null); then return 0; fi` after the settings, so the probe can source the wrapper;
+   - `while [ $# -gt 0 ] && agent_box_net_flag "$1"; do shift; done` right after it, so only the words the user
+     starts the wrapper with widen its network; never set `BOX_INTERNET` or `BOX_LAN` any other way;
    - no folder that holds credentials in `BOX_READ`, `BOX_WRITE` or `BOX_TOOLS`; hide it with `BOX_HIDE`;
    - `[ -z "$BOX_CHANGED" ] || echo "$BOX_CHANGED" >&2` after a writable run.
 5. **Probe it.** `bash <skill-dir>/scripts/probe.sh <wrapper> <the agent's host>` must print no FAIL. It runs all three
@@ -40,7 +42,8 @@ Paths below are under this skill's folder (`<skill-dir>`), not the user's reposi
    is a PASS: the host was reached. Then make the checks probe.sh cannot (srt.md, and the agent's own in agents.md) and one real one-prompt run. A failure goes back to
    step 2 if something the agent needs is missing, to step 4 if the box lets too much in.
 6. **Wire it in.** The skill or command that runs the agent calls the wrapper instead of the agent, passes its
-   arguments through, and prints `BOX_CHANGED` when set. Tell the user what limits.md says the box leaves open.
+   arguments through, and prints `BOX_CHANGED` when set. Pass `--internet` or `--network` only when the user asked for
+   that network in their own words; with `--internet` every key in the box can be sent to any host. Tell the user what limits.md says the box leaves open.
 
 ## Files
 
@@ -55,6 +58,8 @@ Paths below are under this skill's folder (`<skill-dir>`), not the user's reposi
 - [references/why.md](references/why.md) — why sandbox an agent: what the box does, the dangers it closes. Step 6.
 - `evals/cases.yaml` — trigger and outcome cases for this skill; run them after changing the description.
 - `scripts/agent-box.sh` — the box. Sourced by every wrapper; read its header only when changing it.
+- `scripts/agent-box-net.mjs` — srt with `--internet` or `--network`, run by `agent_box`: its callback decides each
+  host srt's lists do not (srt.md). Run it through a wrapper; don't read it.
 - `scripts/probe.sh` — proves a box in a throwaway repository. Run it; don't read it.
 - `scripts/preflight.sh` — read-only check of a repository for uncommitted work, a token in its git config and keys
   in any object in `.git`; OK or WARN per line. Step 3. Run it; don't read it.

@@ -12,7 +12,8 @@ the defaults (`BOX_MODE=review` and the rest).
 | `build` | as `write` | `BOX_TOOLS` read-only; the dependency folders (`node_modules`, `.venv`, `venv`) shown and writable |
 
 Pick the least the task needs: review for reading and reviewing, write for edits, build only when the project's
-checks must run in the box. No package registry is reachable in any mode, so nothing gets installed.
+checks must run in the box. No package registry is reachable in any mode unless the wrapper is started with `--internet`, so by default nothing
+gets installed.
 
 ## Values the wrapper sets
 
@@ -40,6 +41,17 @@ or holds one of the broad roots in `BOX_TOOLS_REFUSED` (the home, `~/.local`, `~
 `~/.password-store`). probe.sh fails any folder in `BOX_READ`, `BOX_WRITE` or `BOX_TOOLS` it refuses. Any other
 folder added by hand is still the author's judgement: never add uv's own folder or any other that holds credentials.
 
+## A wider network (`--internet`, `--network`)
+
+A wrapper hands the leading words of its own command line to `agent_box_net_flag`: `--internet` sets `BOX_INTERNET`
+(any host outside the local network: web pages, package registries, any API), `--network` sets `BOX_LAN` (the local
+network's devices, by address only). With either, `agent_box` runs srt through `scripts/agent-box-net.mjs`, whose
+callback decides each host srt's lists do not (srt.md). Never reached, whatever the flags: `localhost`, loopback,
+link-local, multicast, cloud metadata, every address of this machine and the networks of its other interfaces
+(Docker's bridges, a VPN). Sourcing `agent-box.sh` empties both values, so a variable set outside opens nothing;
+never set them by hand. A boxed agent cannot start a wider box, as srt does not nest. With `--internet` every key in
+the box can be sent to any host (limits.md).
+
 The user running the wrapper may set `AGENT_BOX_READ`: more read-only folders, colon-separated (a test venv kept
 elsewhere). A stray colon adds nothing.
 
@@ -54,13 +66,14 @@ elsewhere). A stray colon adds nothing.
 ## Fixed in agent-box.sh
 
 `BOX_SYSTEM` (`/usr`, `/etc`; no `/run`, whose DNS socket would let names out), `BOX_SYSTEM_PATH`, `BOX_DEPS`,
-`BOX_SOCKETS` (srt's proxy sockets), `BOX_PLACEHOLDERS` (srt's guarded names), `BOX_USERNS_GUARD`. Change them only
+`BOX_SOCKETS` (srt's proxy sockets), `BOX_PLACEHOLDERS` (srt's guarded names), `BOX_USERNS_GUARD`, `BOX_NO_PROXY`
+(with `--network`, only the box's own loopback skips the proxy), `BOX_NET_RUNNER` (`agent-box-net.mjs`). Change them only
 with srt.md open.
 
 ## The environment in the box
 
-`HOME`, `PATH`, `LANG=C.UTF-8`, `TERM`, `TMPDIR` (a short folder of the run's own), srt's proxy variables, and
-`BOX_KEEP`'s. The rest is unset in a subshell before srt starts, and exported shell functions are dropped.
+`HOME`, `PATH`, `LANG=C.UTF-8`, `TERM`, `TMPDIR` (a short folder of the run's own), srt's proxy variables (with
+`--network`, `NO_PROXY` is `BOX_NO_PROXY`), and `BOX_KEEP`'s. The rest is unset in a subshell before srt starts, and exported shell functions are dropped.
 
 ## What the box sees
 
@@ -84,6 +97,7 @@ BOX_DOMAINS=("${MY_HOSTS[@]}")
 BOX_READ=("$HOME/.my-agent")   # its program and config, read-only
 BOX_KEEP=(MY_AGENT_API_KEY)
 if (return 0 2> /dev/null); then return 0; fi
+while [ $# -gt 0 ] && agent_box_net_flag "$1"; do shift; done   # --internet, --network
 trap agent_box_sweep EXIT
 trap 'exit 129' HUP INT TERM
 rc=0
@@ -95,6 +109,9 @@ exit "$rc"
 ## Functions
 
 - `agent_box <command...>` — runs the command in the box, in the current folder. Returns its exit code, or 2
-  when the box cannot start (not a repository, the repository holds the home, srt or node missing, a bad mode).
+  when the box cannot start (not a repository, the repository holds the home, srt or node missing, a bad mode); 1
+  when `--internet` or `--network` cannot start srt (srt's files, `ip` or the settings).
+- `agent_box_net_flag <word>` — true, and the network widened, for `--internet` or `--network`; false for any other
+  word. A wrapper loops it over its leading words, after its `return`.
 - `agent_box_tools` — see above; call it before `agent_box`, in build mode.
 - `agent_box_sweep` — removes srt's placeholders left by a killed run: only those missing before and still empty.

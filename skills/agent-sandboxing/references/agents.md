@@ -16,7 +16,8 @@ Each wrapper's header says what is in its box. These are the traps that shaped t
   later runs git on outside) and logs go into an empty folder thrown away at the end.
 - It follows srt's `HTTPS_PROXY` and needs `opencode.ai` and `*.opencode.ai` (the model list is
   `models.opencode.ai`). It runs on its own login: pass it no provider key.
-- `--persist` keeps one repository's sessions across runs in a copy of its own, its login renewed each time.
+- `--persist` keeps one repository's sessions across runs in a copy of its own, its login renewed each time. It,
+  `--internet` and `--network` come first, in any order.
 - When scripting `opencode run`: `--file=` with its `=` and `--` before the prompt, no `<` or `>` in the prompt,
   stdin from `/dev/null`, output to a log file, not a pipe.
 
@@ -33,7 +34,7 @@ the wrapper opens opencode's screen; `--persist run` twice, the second with `--c
   `cp -L`: it may link outside the box). `mcp.json` stays out: its servers would start programs.
 - Its program, `~/.pi/agent/bin` and `install`, is read-only.
 - Hosts are `PI_HOSTS`, keys `PI_KEYS`, by name. Every key in `PI_KEYS` is in the box, and the model could send
-  one to another host in `PI_HOSTS`: add only the providers you use.
+  one to another host in `PI_HOSTS` (with `--internet`, to any host): add only the providers you use.
 
 Checks: a one-prompt run in `--mode json` with stdin closed answers; no command line holds a key during the run;
 after a SIGHUP the config copy is gone. A SIGKILL leaves it (mode 700) in the temporary folder.

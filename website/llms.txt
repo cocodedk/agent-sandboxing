@@ -24,7 +24,7 @@ Section ids are the same in every language: what-can-go-wrong-without-a-sandbox,
 
 ## Source
 
-- [Repository](https://github.com/cocodedk/agent-sandboxing): the skill is in `skills/agent-sandboxing` (SKILL.md, references, the agent-box script, ready-made wrappers opencode-box, pi-box and prime-agent-box, the probe test, and preflight.sh, the check of a repository for uncommitted work, a token in the git config and secrets in the git history).
+- [Repository](https://github.com/cocodedk/agent-sandboxing): the skill is in `skills/agent-sandboxing` (SKILL.md, references, the agent-box script, ready-made wrappers opencode-box, pi-box and prime-agent-box (each takes `--internet` or `--network` to widen its network), the probe test, and preflight.sh, the check of a repository for uncommitted work, a token in the git config and secrets in the git history).
 - License: Apache-2.0.
 
 ## Credit
