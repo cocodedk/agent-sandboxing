@@ -20,7 +20,7 @@ readonly KEY_PATTERNS=(
   'AKIA[0-9A-Z]{16}'                       # AWS access key id
   '(ghp|gho)_[A-Za-z0-9]{30,}'             # GitHub token
   'github_pat_[A-Za-z0-9_]{20,}'           # GitHub fine-grained token
-  'sk-[A-Za-z0-9_-]{20,}'                  # OpenAI / Anthropic style key
+  '(^|[^A-Za-z0-9_-])sk-[A-Za-z0-9_-]{20,}' # OpenAI / Anthropic style key, at a word start (not task-…)
   'xox[abprs]-[A-Za-z0-9-]{10,}'           # Slack token
   # generic: name = value, the value a whole token (not a call such as get_password())
   '(KEY|TOKEN|SECRET|PASSWORD|[Kk]ey|[Tt]oken|[Ss]ecret|[Pp]assword)["'"'"']?[[:space:]]*[:=][[:space:]]*["'"'"']?[A-Za-z0-9/+_.-]{16,}(["'"'"'[:space:],;]|$)'
@@ -36,9 +36,11 @@ report() {   # report OK|WARN text
 scan_log() {
   local joined
   joined="$(IFS='|'; echo "${KEY_PATTERNS[*]}")"
-  # -U0: no context lines; the file comes from "diff --git", as an added line can look like a "+++ " header.
+  # -U0: no context lines; the file comes from "diff --git", as an added line can look like a "+++ " header. sed puts
+  # a space after an added line's +, so a key at the start of the line is at a word start too.
   git log -p -U0 --all --reflog --diff-merges=first-parent --no-color --no-ext-diff --no-textconv \
     --format='commit %H%n%w(0,4,4)%B' \
+    | LC_ALL=C sed 's/^+/+ /' \
     | { LC_ALL=C grep -a -E -- "^commit |^diff --git |^(\+|    ).*($joined)" || true; } \
     | LC_ALL=C awk -v n="$SHORT_ID" -v m="$MSG_FILE" '
         /^commit / { c = substr($2, 1, n); f = ""; next }
