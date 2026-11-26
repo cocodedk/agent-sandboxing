@@ -141,7 +141,7 @@
       <ul>
         <li>它和容器一样，与你的电脑共享内核（操作系统的核心）。内核漏洞可能让进程逃逸出去。虚拟机的隔离程度更高。请保持内核为最新版本。</li>
         <li>被允许的主机仍会收到数据。沙箱内的任何内容仍然可以发送到被允许的主机，例如模型提供商。其中包括项目的代码和智能体所需的密钥。攻击者不需要自己的服务器：智能体读到的文本可以让它使用攻击者自己的 API 密钥把文件发送到被允许的主机，数据就会落入攻击者在该主机上的账户。被隐藏的文件（例如 <code>.env</code>）仍然无法访问。</li>
-        <li>Git 历史仍然可读。智能体无法写入 <code>.git</code>，但可以读取它，因此任何曾经提交过的密钥都仍留在历史中，即使你已删除它并把它加入 <code>.gitignore</code>。写在 <code>.git/config</code> 远程 URL 中的令牌也是如此。运行智能体之前，请先把这类密钥从历史中移除，并更换密钥。</li>
+        <li>Git 历史仍然可读。智能体无法写入 <code>.git</code>，但可以读取它，因此任何曾经提交过的密钥都仍留在历史中，即使你已删除它并把它加入 <code>.gitignore</code>。写在 <code>.git/config</code> 远程 URL 中的令牌也是如此。运行智能体之前，请先把这类密钥从历史中移除，并更换密钥。该技能的检查会在 <code>.git</code> 的每个提交、标签和暂存文件中查找这类密钥，包括已不属于任何提交的对象，也会检查 git 配置中的令牌。它只显示位置，从不显示密钥本身。它不读取 Git LFS 文件。</li>
         <li>智能体写的代码一旦被你运行、推送或安装，就会在沙箱之外运行。请先审查 diff，以及它在依赖文件夹（<code>node_modules</code>、<code>.venv</code>）中改动的所有文件。</li>
         <li>软件包仓库被屏蔽，因此沙箱内无法安装任何东西。请在沙箱外安装，并照常做检查。</li>
         <li>项目文件夹不受保护。智能体仍然可以修改或删除其中的文件，包括你尚未提交的工作。请先提交或 stash，或者给智能体一个单独的 worktree（仓库的一个单独检出）。</li>
@@ -176,7 +176,7 @@
           <div class="code"><pre><code class="language-text">mkdir -p ~/.claude/skills &amp;&amp; cp -r agent-sandboxing/skills/agent-sandboxing ~/.claude/skills/</code></pre></div>
           <p>现在你就有了 <code>~/.claude/skills/agent-sandboxing</code>。</p>
         </li>
-        <li><p>在 Claude Code 中请求一个沙箱，例如“sandbox opencode”或“put my agent CLI in a box”。对于 opencode、pi 和 prime-agent，Claude 会使用现成的包装脚本。对于其他智能体，Claude 会先了解该智能体需要什么，再编写一个小型包装脚本。在某个仓库中首次运行之前，它会检查是否有未提交的改动，以及 git 历史中是否含有机密信息，并告诉你检查结果。然后运行该技能的探测测试。测试会逐一检验每道围栏：被隐藏的 <code>.env</code>、只读的 <code>.git</code>、被拒绝的主机和被清除的变量。它会为每项检查打印 PASS 或 FAIL，最后应显示 0 failed。该测试表明沙箱遵守包装脚本的设置，并会拒绝访问 <code>~/.ssh</code> 等常见的凭据文件夹；包装脚本中的其他文件夹和主机是否可以安全共享，仍需由你自己判断。</p></li>
+        <li><p>在 Claude Code 中请求一个沙箱，例如“sandbox opencode”或“put my agent CLI in a box”。对于 opencode、pi 和 prime-agent，Claude 会使用现成的包装脚本。对于其他智能体，Claude 会先了解该智能体需要什么，再编写一个小型包装脚本。在某个仓库中首次运行之前，它会检查是否有未提交的改动、git 配置中是否有令牌，以及 git 历史（包括暂存文件）中是否含有机密信息，并告诉你它们在哪里，但从不显示其内容。然后运行该技能的探测测试。测试会逐一检验每道围栏：被隐藏的 <code>.env</code>、只读的 <code>.git</code>、被拒绝的主机和被清除的变量。它会为每项检查打印 PASS 或 FAIL，最后应显示 0 failed。该测试表明沙箱遵守包装脚本的设置，并会拒绝访问 <code>~/.ssh</code> 等常见的凭据文件夹；包装脚本中的其他文件夹和主机是否可以安全共享，仍需由你自己判断。</p></li>
       </ol>
       <p>该技能自带现成的包装脚本：opencode-box、pi-box 和 prime-agent-box。该技能为 Claude Code 运行的其他智能体 CLI 提供沙箱。它不会把 Claude Code 本身放进沙箱，Claude Code 有自己的沙箱设置。</p>
     </section>

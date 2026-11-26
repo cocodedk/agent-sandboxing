@@ -8,9 +8,8 @@ git folder inside it (each submodule's). Two modes:
            message, a tag's message, a staged file, or an object in no commit.
   config   reads the repository's own git config (local and worktree, includes followed) and prints the section and
            name of each entry whose name or value holds a token, never the subsection (a URL there can hold one).
-A submodule's lines start with its folder under .git ("modules/x:"). Exits 0 when it read everything,
-EXIT_GIT_FAILED when a git command failed or an object was cut short; the lines printed until then still stand.
-It runs no code from the repository and writes nothing.
+A submodule's lines start with its folder under .git ("modules/x:"). Exits 0 when it read everything, else
+EXIT_GIT_FAILED (git failed, or a folder in .git was unreadable); its lines still stand. It runs no repository code.
 """
 
 from __future__ import annotations
@@ -28,9 +27,8 @@ EXIT_USAGE = 2
 EXIT_GIT_FAILED = 3
 SCANNED = {b"blob", b"commit", b"tag"}
 REPO_SCOPES = {b"local", b"worktree"}  # config the repository's own folder holds
-STAGED, NOWHERE = "(staged)", "(in no commit)"
+STAGED, NOWHERE, KEY_NAME = "(staged)", "(in no commit)", "(a file named with a key)"
 WHERE = {b"commit": "(commit message)", b"tag": "(tag message)"}  # where a hit in an object of this type is
-GIT_DATA = {"objects", "refs", "logs", "lfs"}  # folders of a git folder that hold no other git folder
 # Every git command: no fsmonitor, pager, textconv, external diff or signature check from the repository's config.
 GIT = ["git", "-c", "core.fsmonitor=false", "--no-pager"]
 LOG = ["log", "--all", "--reflog", "--root", "--raw", "--no-abbrev", "--no-renames", "--no-textconv",
@@ -83,17 +81,17 @@ def git(where: list[str], *args: str) -> bytes:
     return done.stdout
 
 
-def git_dirs() -> list[tuple[str, list[str]]]:
+def git_dirs() -> tuple[list[tuple[str, list[str]]], bool]:
     """(label, git options) for this repository and every git folder inside its .git: each submodule's, wherever it
-    is (.git/modules, a linked worktree's modules, a submodule's own)."""
+    is (.git/modules, a linked worktree's modules, a submodule's own); and whether every folder in .git was read."""
     common = git([], "rev-parse", "--path-format=absolute", "--git-common-dir").decode().strip()
     found: list[tuple[str, list[str]]] = [("", [])]
-    for root, dirs, files in os.walk(common):
-        is_git = "HEAD" in files and "objects" in dirs and "refs" in dirs
-        if is_git and root != common:
+    unread: list[OSError] = []
+    for root, dirs, files in os.walk(common, onerror=unread.append):
+        dirs.sort()
+        if root != common and "HEAD" in files and "objects" in dirs and "refs" in dirs:
             found.append((os.path.relpath(root, common) + ":", ["--git-dir", root]))
-        dirs[:] = sorted(d for d in dirs if not (is_git and d in GIT_DATA))
-    return found
+    return found, not unread
 
 
 def has_key(out: IO[bytes], size: int, scan: bool) -> bool:
@@ -155,7 +153,8 @@ def objects(label: str, where: list[str]) -> bool:
     blobs = {oid for oid, kind in hits if kind == b"blob"}
     files, placed = blob_places(where, blobs) if blobs else ({}, set())
     found = {f"{oid.decode()[:SHORT_ID]}\t{label}{WHERE.get(kind, NOWHERE)}" for oid, kind in hits if oid not in placed}
-    found.update(f"{commit[:SHORT_ID]}\t{label}{path}" for path, commit in files.items())
+    found.update(f"{commit[:SHORT_ID]}\t{label}{KEY_NAME if key_in(path.encode()) else path}"
+                 for path, commit in files.items())
     for line in sorted(found):
         print(line)
     return complete
@@ -176,9 +175,10 @@ def main() -> int:
     if sys.argv[1:] not in (["config"], ["objects"]):
         print("usage: preflight_scan.py objects|config", file=sys.stderr)
         return EXIT_USAGE
-    complete, names = True, set()
+    names: set[str] = set()
     try:
-        for label, where in git_dirs():
+        dirs, complete = git_dirs()
+        for label, where in dirs:
             if sys.argv[1] == "config":
                 names |= config(label, where)
             else:

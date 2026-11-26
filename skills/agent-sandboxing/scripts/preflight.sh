@@ -5,7 +5,8 @@
 # repository ships. Checks: uncommitted work (the box does not protect the project folder), tokens in the local git
 # config (a remote URL, an http header), and key-shaped strings in any object in .git (every commit, file version, tag,
 # stash, staged file and unreachable object), read once by preflight_scan.py beside it, which needs python3. A hit is
-# shown as where it is (commit and file, a message, an object id), never its value.
+# shown as where it is (commit and file, a message, an object id), never its value. Not found: a key in a Git LFS file,
+# in a pack file with no index, in another worktree's config.worktree, or only in a file name.
 set -euo pipefail
 export GIT_OPTIONAL_LOCKS=0 GIT_NO_LAZY_FETCH=1   # git status must not rewrite .git/index; no fetch of missing blobs
 readonly EXIT_NOT_REPO=2
@@ -45,19 +46,20 @@ if ! command -v python3 > /dev/null 2>&1 || [ ! -f "$SCAN" ]; then
 fi
 
 # 2. Tokens in the local git config (the entry's section and name only, never its value).
-if ! names="$(python3 -I "$SCAN" config)"; then
-  report "$WARN" "git config: not checked, as git could not read it"
-elif [ -z "$names" ]; then
-  report "$OK" "git config: no tokens"
-else
+rc=0
+names="$(python3 -I "$SCAN" config)" || rc=$?
+[ "$rc" -eq 0 ] || report "$WARN" "git config: not all of .git could be read, so a token may be missing from this check"
+if [ -n "$names" ]; then
   report "$WARN" "git config: a token in $names; .git is readable in the box, so it can be read there; remove it and replace the token"
+elif [ "$rc" -eq 0 ]; then
+  report "$OK" "git config: no tokens"
 fi
 
 # 3. Key-shaped strings in any object in .git.
 rc=0
 hits="$(python3 -I "$SCAN" objects)" || rc=$?
 count="$(grep -c . <<< "$hits" || true)"
-[ "$rc" -eq 0 ] || report "$WARN" "history: git could not read every object in .git, so keys may be missing below"
+[ "$rc" -eq 0 ] || report "$WARN" "history: not all of .git could be read, so keys may be missing from this check"
 if [ "$count" -gt 0 ]; then
   report "$WARN" "history: key-shaped strings in $count place(s) in .git; .git is readable in the box, so these can be read there; remove them from the history (for example git filter-repo), drop unreachable objects (git reflog expire --expire=now --all, then git gc --prune=now), and replace the keys"
   printf '%s\n' "$hits" | sed -n "1,${MAX_HITS}s/^/     /p"

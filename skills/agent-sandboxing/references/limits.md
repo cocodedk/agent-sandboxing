@@ -17,7 +17,7 @@ work safe. Say these to the user when wiring a box in.
   the attacker's account; a domain list cannot tell the two keys apart. Keep both lists short.
 - **Git history.** `.git` is readable, so git works. Any secret ever committed, even if since deleted and git-ignored,
   and any token in a remote URL in `.git/config`, can be read in the box and sent to an allowed host. Tell the user to
-  remove it from the history (for example `git filter-repo`) and rotate the key. `scripts/preflight.sh` finds both, and keys in tags, staged files and objects no commit holds; it does not read Git LFS files.
+  remove it from the history (for example `git filter-repo`) and rotate the key. `scripts/preflight.sh` finds both, and keys in tags, staged files and objects no commit holds; it does not find a key in a Git LFS file, in a pack file with no index, in another worktree's `config.worktree`, or only in a file name.
 - **The kernel.** bubblewrap uses Linux namespaces. A kernel bug can break out of them, and where AppArmor forces
   `allowAllUnixSockets`, srt's seccomp filter is off. Keep the kernel patched; it is not a VM.
 - **The agent's own folders.** What is writable in `BOX_WRITE` persists unless it is a copy thrown away; a

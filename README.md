@@ -46,7 +46,7 @@ You need Linux, Claude Code, bubblewrap, socat, ripgrep, git, python3, Node.js a
    ```
 
    You now have `~/.claude/skills/agent-sandboxing`.
-6. In Claude Code, ask for a sandbox, for example "sandbox opencode" or "put my agent CLI in a box". For opencode, pi and prime-agent, Claude uses the ready-made wrapper. For any other agent, it surveys what the agent needs and writes a small wrapper script. Before the first run in a repository, it checks for uncommitted work and for secrets in the git history, and tells you what it finds. Then it runs the skill's probe test. The test tries each fence: a hidden `.env`, a read-only `.git`, a refused host and cleared variables. It prints PASS or FAIL per check and should end with 0 failed. The test shows that the sandbox keeps to the wrapper's settings and refuses common credential folders such as `~/.ssh`; whether the other folders and hosts in the wrapper are safe to share is still yours to judge.
+6. In Claude Code, ask for a sandbox, for example "sandbox opencode" or "put my agent CLI in a box". For opencode, pi and prime-agent, Claude uses the ready-made wrapper. For any other agent, it surveys what the agent needs and writes a small wrapper script. Before the first run in a repository, it checks for uncommitted work, a token in the git config and secrets in the git history, staged files included, and tells you where they are, never their values. Then it runs the skill's probe test. The test tries each fence: a hidden `.env`, a read-only `.git`, a refused host and cleared variables. It prints PASS or FAIL per check and should end with 0 failed. The test shows that the sandbox keeps to the wrapper's settings and refuses common credential folders such as `~/.ssh`; whether the other folders and hosts in the wrapper are safe to share is still yours to judge.
 
 The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box. The skill sandboxes other agent CLIs that Claude Code runs. It does not sandbox Claude Code itself, which has its own sandbox settings.
 
@@ -57,14 +57,14 @@ The skill includes ready-made wrappers: opencode-box, pi-box and prime-agent-box
 - `scripts/agent-box.sh`: the box, sourced by each wrapper; turns an agent's list of hosts, folders and kept variables into srt's settings.
 - `scripts/opencode-box`, `scripts/pi-box`, `scripts/prime-agent-box`: the ready-made wrappers.
 - `scripts/probe.sh`: the probe test that tries each fence and prints PASS or FAIL per check.
-- `scripts/preflight.sh`: a read-only check of your repository before a boxed run; it warns about uncommitted work, a token in the git config, and secrets anywhere in `.git`: the history, tags, staged files and objects no commit holds any more. `scripts/preflight_scan.py` does the scanning; it needs python3.
+- `scripts/preflight.sh`: a read-only check of your repository before a boxed run; it warns about uncommitted work, a token in the git config, and secrets in any object in `.git`: the history, tags, staged files and objects no commit holds any more. `scripts/preflight_scan.py` does the scanning; it needs python3.
 - `evals/cases.yaml`: trigger and outcome cases for the skill.
 
 ## Limits
 
 - It shares your computer's kernel, like a container; a virtual machine isolates more.
 - Allowed hosts, such as the model provider, still receive whatever is inside the sandbox, and a tricked agent can send it there under an attacker's own API key.
-- Git history stays readable: a secret that was ever committed, or a token in a remote URL in `.git/config`, is still there; remove it from the history and replace the key before you run an agent.
+- Git history stays readable: a secret that was ever committed, or a token in a remote URL in `.git/config`, is still there; remove it from the history and replace the key before you run an agent. `scripts/preflight.sh` finds such secrets in every commit, tag and staged file, even in objects no commit holds any more, and shows where they are, never their values; it does not read Git LFS files.
 - Code the agent writes runs outside the sandbox once you run, push or install it: review the diff first.
 - Package registries are blocked, so nothing installs inside the sandbox.
 - The project folder is not protected: commit or stash first, or use a separate worktree.
