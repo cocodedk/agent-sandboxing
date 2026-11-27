@@ -1,0 +1,13 @@
+[Unit]
+Description=agent-watch tray: agents' alerts and live network contacts
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+# The root-owned installed copy: agents run as this user and could rewrite one in the home.
+ExecStart=/usr/bin/python3 /usr/local/lib/agent-watch/tray/agent_watch_tray.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

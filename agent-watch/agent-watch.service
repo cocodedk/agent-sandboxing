@@ -1,0 +1,23 @@
+[Unit]
+Description=agent-watch: log what AI agent processes open, connect to, look up and run
+After=local-fs.target
+# A program that cannot start (bpftrace refuses it) ends in "failed" instead of restarting forever.
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+# The root-owned installed copy, never the checkout: agents can write the checkout.
+ExecStart=/usr/local/lib/agent-watch/agent-watch
+# Stop signals only agent-watch, which passes SIGINT to bpftrace (it detaches on SIGINT)
+# and writes the stop record; anything left after that is killed.
+KillMode=mixed
+Restart=always
+RestartSec=5
+Nice=10
+# A backstop: the dedupe set is bounded, but a runaway still cannot starve the machine.
+MemoryMax=1G
+# Events go to /var/log/agent-watch; the journal gets only the tracer's own messages.
+
+[Install]
+WantedBy=multi-user.target

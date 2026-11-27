@@ -1,0 +1,151 @@
+#!/usr/bin/env bpftrace
+// agent-watch: logs what AI agent processes and their children open, connect to,
+// look up and run. A template: src/program.rs fills its placeholders.
+// Each record: kind, pid, root pid, comm length, comm, then the free-text field last.
+// comm is free text too (prctl can set it), so its byte length goes before it.
+// @agent maps a pid or tid to the pid of its agent root.
+// @debug marks a tid whose exec carries the browser debug flag, until that exec ends.
+
+#define AF_INET 2
+#define AF_INET6 10
+#define FMODE_WRITE 0x2
+
+config = {
+  missing_probes = warn;
+  max_strlen = @@MAX_STRLEN@@;
+  max_map_keys = @@MAX_MAP_KEYS@@;
+}
+
+BEGIN
+{
+@@SEEDS@@
+}
+
+// Every exec clears the mark first, so a failed exec cannot mark a later one.
+tracepoint:syscalls:sys_enter_execve,
+tracepoint:syscalls:sys_enter_execveat
+{
+  $ignore = delete(@debug, (uint64)tid);
+  // A browser helper (--type=...) carries the flag too, as renderers do; it stays under its browser.
+  // A while loop: bpftrace 0.25 refuses the args builtin inside a for loop.
+  $flag = 0;
+  $helper = 0;
+  $i = 0;
+  while ($i < @@DEBUG_MAX_ARGS@@) {
+    $arg = args.argv[$i];
+    if ($arg == 0) {
+      break;
+    }
+    $text = str($arg, @@DEBUG_PREFIX_READ@@);
+    if (strncmp($text, "@@DEBUG_PREFIX@@", @@DEBUG_PREFIX_LEN@@) == 0) {
+      $flag = 1;
+    }
+    if (strncmp($text, "@@CHILD_TYPE@@", @@CHILD_TYPE_LEN@@) == 0) {
+      $helper = 1;
+      break;
+    }
+    $i++;
+  }
+  if ($flag && !$helper) {
+    @debug[(uint64)tid] = 1;
+  }
+}
+
+tracepoint:sched:sched_process_exec
+{
+  // A non-leader thread's exec: the old leader's exit deleted pid's key; move old_pid's.
+  if (args.old_pid != args.pid && has_key(@agent, (uint64)args.old_pid)) {
+    @agent[(uint64)pid] = @agent[(uint64)args.old_pid];
+    $ignore = delete(@agent, (uint64)args.old_pid);
+  }
+  // The exec'ing thread's tid is old_pid: a non-leader thread takes the pid at exec.
+  $debug = delete(@debug, (uint64)args.old_pid); // true when the key was there
+  if (@@AGENT_MATCH@@ || $debug) {
+    @agent[(uint64)pid] = (uint64)pid;
+    printf("agent\t%d\t%d\t%d\t%s\t\n", pid, pid, strlen(comm), comm);
+  }
+  if (has_key(@agent, (uint64)pid)) {
+    printf("exec\t%d\t%d\t%d\t%s\t%s\n", pid, @agent[(uint64)pid], strlen(comm), comm, str(args.filename));
+  }
+}
+
+// Fires for new processes and new threads; thread keys go at thread exit.
+tracepoint:sched:sched_process_fork
+/has_key(@agent, (uint64)pid)/
+{
+  @agent[(uint64)args.child_pid] = @agent[(uint64)pid];
+}
+
+// One probe for every thread exit: a mark left by a failed exec goes, and so does the agent key.
+tracepoint:sched:sched_process_exit
+{
+  $ignore = delete(@debug, (uint64)tid);
+  if (has_key(@agent, (uint64)tid)) {
+    if (@agent[(uint64)tid] == (uint64)tid) {
+      printf("end\t%d\t%d\t%d\t%s\t\n", tid, tid, strlen(comm), comm);
+    }
+    $ignore = delete(@agent, (uint64)tid);
+  }
+}
+
+fentry:security_file_open
+/has_key(@agent, (uint64)pid)/
+{
+  printf("open\t%d\t%d\t%d\t%s\t%d\t%s\n", pid, @agent[(uint64)pid], strlen(comm), comm,
+         args.file->f_mode & FMODE_WRITE, path(args.file->f_path));
+}
+
+fentry:security_socket_connect
+/has_key(@agent, (uint64)pid)/
+{
+  if (args.address->sa_family == AF_INET) {
+    $in4 = (struct sockaddr_in *)args.address;
+    printf("connect\t%d\t%d\t%d\t%s\t%d\t%s\n", pid, @agent[(uint64)pid], strlen(comm), comm,
+           bswap($in4->sin_port), ntop(AF_INET, $in4->sin_addr.s_addr));
+  }
+  if (args.address->sa_family == AF_INET6) {
+    $in6 = (struct sockaddr_in6 *)args.address;
+    printf("connect\t%d\t%d\t%d\t%s\t%d\t%s\n", pid, @agent[(uint64)pid], strlen(comm), comm,
+           bswap($in6->sin6_port), ntop(AF_INET6, $in6->sin6_addr.in6_u.u6_addr8));
+  }
+}
+
+uprobe:libc:getaddrinfo
+/has_key(@agent, (uint64)pid)/
+{
+  printf("dns\t%d\t%d\t%d\t%s\t%s\n", pid, @agent[(uint64)pid], strlen(comm), comm, str(arg0));
+}
+
+// A TLS ClientHello names the site (SNI) in clear: an agent's first bytes on a connection, when they are one.
+// write() and send() hand tcp_sendmsg one user buffer (ITER_UBUF); sendmsg() and writev() an iovec array.
+fentry:tcp_sendmsg
+/has_key(@agent, (uint64)pid)/
+{
+  $data = (uint8 *)args.msg->msg_iter.ubuf;
+  $len = args.size;
+  if (args.msg->msg_iter.iter_type == @@ITER_IOVEC@@) {
+    $data = (uint8 *)args.msg->msg_iter.__iov->iov_base;
+    $len = args.msg->msg_iter.__iov->iov_len;
+  }
+  if ($len > @@TLS_READ@@) {
+    $len = @@TLS_READ@@;
+  }
+  $kind = args.msg->msg_iter.iter_type;
+  if (($kind == @@ITER_UBUF@@ || $kind == @@ITER_IOVEC@@) && $len > @@HELLO_TYPE_AT@@ &&
+      *uptr($data) == @@TLS_HANDSHAKE@@ && *uptr($data + @@HELLO_TYPE_AT@@) == @@CLIENT_HELLO@@) {
+    $port = bswap(args.sk->__sk_common.skc_dport);
+    if (args.sk->__sk_common.skc_family == AF_INET) {
+      printf("tls\t%d\t%d\t%d\t%s\t%d\t%s\t%rh\n", pid, @agent[(uint64)pid], strlen(comm), comm, $port,
+             ntop(AF_INET, args.sk->__sk_common.skc_daddr), buf(uptr($data), $len));
+    } else {
+      printf("tls\t%d\t%d\t%d\t%s\t%d\t%s\t%rh\n", pid, @agent[(uint64)pid], strlen(comm), comm, $port,
+             ntop(AF_INET6, args.sk->__sk_common.skc_v6_daddr.in6_u.u6_addr8), buf(uptr($data), $len));
+    }
+  }
+}
+
+END
+{
+  clear(@agent);
+  clear(@debug);
+}
