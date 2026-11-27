@@ -5,21 +5,24 @@
 // gets no more than that box's own network, as everything it starts is inside it.
 //   node agent-box-net.mjs <srt's dist folder> <settings.json> internet|network|both -- <command...>
 // internet: any host but a private or local-network address, and no name that leads to one.
-// network: the local network the default route is on (its IPv4 subnets), by address only; not Docker's networks or
-// other private ranges this machine has. both: the two; a name never leads into a private range. Never, whatever the
-// flags: localhost, loopback, link-local, multicast, cloud metadata, every address of this machine and every network
-// of its other interfaces (Docker's bridges, a VPN): srt checks those for a name, not for an address its callback
-// allows, and lets localhost through to whoever allows it.
-import { readFileSync } from 'node:fs';
+// network: the networks this machine's network cards are on (Wi-Fi, Ethernet), by address only, even while a VPN
+// holds the default route; not Docker's networks, a VPN's or other private ranges this machine has. A card attached to
+// a bridge (br0, as on a VM host) is not seen, as the bridge holds its address: there network reaches no device.
+// both: the two; a name never leads into a private range. Never, whatever the flags: localhost, loopback, link-local,
+// multicast, cloud metadata, every address of this machine and every network of its other interfaces (Docker's
+// bridges, a VPN): srt checks those for a name, not for an address its callback allows, and lets localhost through to
+// whoever allows it.
+import { existsSync } from 'node:fs';
 import { BlockList, isIP } from 'node:net';
 import { constants } from 'node:os';
 import { execFileSync, spawn } from 'node:child_process';
 
 const PRIVATE = ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '100.64.0.0/10', 'fc00::/7'];
 const NEVER = ['0.0.0.0/8', '127.0.0.0/8', '169.254.0.0/16', '224.0.0.0/4', '255.255.255.255/32', '168.63.129.16/32',
-  '192.0.0.192/32', '::/96', '::ffff:0:0:0/96', '::1/128', 'fe80::/10', 'ff00::/8', '64:ff9b::/96', '2002::/16'];
+  '192.0.0.192/32', '::/96', '::ffff:0:0:0/96',   // IPv4-translated; canonicalizeHost turns ::ffff:a.b.c.d into IPv4
+  '::1/128', 'fe80::/10', 'ff00::/8', '64:ff9b::/96', '2002::/16'];
 const REACHES = ['internet', 'network', 'both'];
-const DEFAULT_ROUTE = '00000000';   // /proc/net/route's destination and mask for the default route
+const NET_CLASS = '/sys/class/net';   // an interface with a device folder here is a network card, not a bridge or tunnel
 const EXIT_USAGE = 2;
 const EXIT_FAILED = 1;
 
@@ -35,13 +38,12 @@ const { quote } = await import(`${dist}/utils/shell-quote.js`);
 const { canonicalizeHost } = await import(`${dist}/sandbox/parent-proxy.js`);
 
 // Every interface, up or down (Docker's bridges are down while no container runs, and networkInterfaces() skips them).
-// The local network is the subnets of the ones the default route leaves by; the others' subnets are this machine's.
+// The local network is the network cards' subnets; the others' (Docker's bridges, a VPN) are this machine's.
 const ifaces = JSON.parse(execFileSync('ip', ['-j', 'addr', 'show'], { encoding: 'utf8' }));
-const routes = readFileSync('/proc/net/route', 'utf8').split('\n').slice(1).map(l => l.trim().split(/\s+/));
-const lanIfaces = new Set(routes.filter(r => r[1] === DEFAULT_ROUTE && r[7] === DEFAULT_ROUTE).map(r => r[0]));
+const isCard = i => existsSync(`${NET_CLASS}/${i.ifname}/device`);
 const subnets = i => (i.addr_info ?? []).filter(a => a.scope === 'global').map(a => `${a.local}/${a.prefixlen}`);
-const lanCidrs = ifaces.filter(i => lanIfaces.has(i.ifname)).flatMap(subnets);
-const machineCidrs = ifaces.filter(i => !lanIfaces.has(i.ifname)).flatMap(subnets);
+const lanCidrs = ifaces.filter(isCard).flatMap(subnets);
+const machineCidrs = ifaces.filter(i => !isCard(i)).flatMap(subnets);
 const blockOf = cidrs => {
   const list = new BlockList();
   for (const c of cidrs) { const [net, bits] = c.split('/'); list.addSubnet(net, Number(bits), isIP(net) === 6 ? 'ipv6' : 'ipv4'); }

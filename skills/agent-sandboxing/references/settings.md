@@ -45,10 +45,12 @@ folder added by hand is still the author's judgement: never add uv's own folder 
 
 A wrapper hands the leading words of its own command line to `agent_box_net_flag`: `--internet` sets `BOX_INTERNET`
 (any host outside the local network: web pages, package registries, any API), `--network` sets `BOX_LAN` (the local
-network's devices, by address only). With either, `agent_box` runs srt through `scripts/agent-box-net.mjs`, whose
+network's devices, by address only: the networks of this machine's network cards, Wi-Fi and Ethernet, even while a
+VPN holds the default route). With either, `agent_box` runs srt through `scripts/agent-box-net.mjs`, whose
 callback decides each host srt's lists do not (srt.md). Never reached, whatever the flags: `localhost`, loopback,
 link-local, multicast, cloud metadata, every address of this machine and the networks of its other interfaces
-(Docker's bridges, a VPN). Sourcing `agent-box.sh` empties both values, so a variable set outside opens nothing;
+(Docker's bridges, a VPN). Known gap: where the network card is attached to a bridge (`br0`, as on a VM host), the
+bridge holds its address and is no card, so `--network` reaches no local device there; it fails closed. Sourcing `agent-box.sh` empties both values, so a variable set outside opens nothing;
 never set them by hand. A boxed agent cannot start a wider box, as srt does not nest. With `--internet` every key in
 the box can be sent to any host (limits.md).
 
